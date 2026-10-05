@@ -42,6 +42,6 @@ function setup() {
   var r = ss.getSheetByName('Rekap') || ss.insertSheet('Rekap');
   r.clear();
   r.getRange('A1').setFormula(
-    '=QUERY(Log!A:H,"select B, sum(F), count(F), max(A) where B is not null group by B order by sum(F) desc ' +
-    'label B \'Nama\', sum(F) \'Total Bintang\', count(F) \'Jumlah Percobaan\', max(A) \'Terakhir Main\'",1)');
+    '=IFERROR(QUERY(Log!A:H,"select B, sum(F), count(F), max(A) where B is not null group by B order by sum(F) desc ' +
+    'label B \'Nama\', sum(F) \'Total Bintang\', count(F) \'Jumlah Percobaan\', max(A) \'Terakhir Main\'",1),"Belum ada data")');
 }
