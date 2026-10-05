@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Susun Kabel UTP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#FFF9F3; --card:#FFFFFF; --ink:#182255; --muted:#566086;
+  --accent:#F79039; --accent-2:#FEBD26; --accent-ink:#182255;
+  --peach:#FCDDC2; --peach-2:#FBCCA4; --line:#F3D3B6;
+  --ok:#14805A; --ok-bg:#DDF4EA; --bad:#C23A3A; --bad-bg:#FBE1E1;
+  --plug:#E8E2D6; --plug-edge:#BDB4A2; --slot:rgba(255,255,255,.55);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121731; --card:#1B2347; --ink:#F4EFE8; --muted:#AAB1D3;
+    --peach:#2A3263; --peach-2:#36407A; --line:#3A4580;
+    --ok:#4CD6A0; --ok-bg:#12382C; --bad:#FF8A8A; --bad-bg:#44202A;
+    --plug:#3A4268; --plug-edge:#6A7299; --slot:rgba(255,255,255,.08);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121731; --card:#1B2347; --ink:#F4EFE8; --muted:#AAB1D3;
+  --peach:#2A3263; --peach-2:#36407A; --line:#3A4580;
+  --ok:#4CD6A0; --ok-bg:#12382C; --bad:#FF8A8A; --bad-bg:#44202A;
+  --plug:#3A4268; --plug-edge:#6A7299; --slot:rgba(255,255,255,.08);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:Arial,"Helvetica Neue",sans-serif;font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+h1,h2,h3{font-family:Montserrat,Arial,sans-serif;margin:0;line-height:1.2}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--accent-2);outline-offset:2px}
+.app{max-width:720px;margin:0 auto;padding:16px 14px 28px}
+
+/* ---------- menu ---------- */
+.hero{background:var(--accent);color:#fff;border-radius:22px;padding:22px 20px 20px;position:relative;overflow:hidden}
+.hero h1{font-size:clamp(26px,7vw,34px);font-weight:800;color:#fff}
+.hero p{margin:8px 0 0;color:#FFF3E6}
+.hero h1,.hero p{padding-right:96px}
+.hero .plugdeco{position:absolute;right:10px;top:18px;display:flex;gap:3px;transform:rotate(8deg);opacity:.95}
+.hero .plugdeco i{display:block;width:12px;height:52px;border-radius:5px;border:1.5px solid rgba(0,0,0,.2)}
+.levels{display:grid;gap:12px;margin-top:16px}
+.lvl{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;text-align:left;
+  background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px 16px;width:100%}
+.lvl:hover{border-color:var(--accent)}
+.lvl .no{width:46px;height:46px;border-radius:50%;background:var(--peach);display:grid;place-items:center;
+  font-family:Montserrat,Arial,sans-serif;font-weight:800;font-size:20px}
+.lvl h2{font-size:17px}
+.lvl p{margin:3px 0 0;color:var(--muted);font-size:14px}
+.stars{font-size:20px;letter-spacing:2px;color:var(--accent-2);white-space:nowrap}
+.stars .off{color:var(--line)}
+.foot{margin-top:18px;color:var(--muted);font-size:13px}
+
+/* ---------- top bar ---------- */
+.bar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.back{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:8px 12px;font-weight:700}
+.bar h2{font-size:18px;flex:1}
+.chip{background:var(--peach);border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;white-space:nowrap}
+.chip.warn{background:var(--bad-bg);color:var(--bad)}
+.hint{margin:0 0 12px;color:var(--muted);font-size:14.5px}
+
+/* ---------- guide ---------- */
+.guide{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:10px 10px 8px;margin-bottom:14px;text-align:left}
+.guide h3{font-size:14px;margin:0 0 6px}
+.guide .g8{display:grid;grid-template-columns:46px repeat(8,1fr);gap:4px;align-items:center;margin-bottom:2px}
+.guide .g8.head{font-size:12px;text-align:center}
+.guide .gl{font-weight:700;font-size:11px}
+.guide .gc{text-align:center;font-size:10px;line-height:1.1}
+.sw{height:18px;border-radius:5px;border:1.5px solid rgba(0,0,0,.28);margin:2px 0}
+.guide .rule{margin:8px 0 0;font-size:12.5px;color:var(--muted)}
+.status{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.task{background:var(--peach);border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:15.5px}
+.sec{margin-bottom:14px}
+.seclabel{font-weight:700;margin:0 0 6px;font-size:14.5px}
+.sec.locked .slotbox{cursor:default;border-style:solid;border-color:rgba(0,0,0,.18)}
+.wire.static{cursor:default}
+.compact .slotbox{height:clamp(78px,20vw,108px)}
+.compact .pool{margin-top:8px;min-height:90px;padding:8px;gap:6px}
+.compact .pool .wire{width:clamp(30px,8.4vw,54px);height:clamp(72px,19vw,98px)}
+
+/* ---------- plug + wires ---------- */
+.plug{background:var(--plug);border:3px solid var(--plug-edge);border-radius:14px 14px 8px 8px;
+  padding:12px 8px 8px;display:grid;grid-template-columns:repeat(8,1fr);gap:5px}
+.slot{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.slotbox{width:100%;height:clamp(96px,26vw,136px);border:2px dashed rgba(0,0,0,.32);border-radius:9px;background:var(--slot);
+  display:flex;align-items:stretch;justify-content:center;padding:0;position:relative;cursor:pointer}
+.slotbox.sel{border-color:var(--accent);border-style:solid;background:var(--peach)}
+.slotbox.ok{border-style:solid;border-color:var(--ok)}
+.slotbox.bad{border-style:solid;border-color:var(--bad);animation:shake .28s}
+.pin{font-weight:800;font-size:13px}
+.wire{position:relative;width:100%;height:100%;border-radius:8px;border:2px solid rgba(0,0,0,.3);padding:0;
+  display:flex;align-items:flex-end;justify-content:center;touch-action:manipulation}
+.wire .wl{margin-bottom:5px;background:rgba(255,255,255,.93);color:#1d1d1d;font-size:10px;font-weight:700;
+  border-radius:5px;padding:1px 3px;line-height:1.2;white-space:nowrap}
+.compact .wire .wl{font-size:9px;padding:1px 2px;margin-bottom:4px}
+.pool{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:128px;padding:12px 8px;
+  border:2px dashed var(--line);border-radius:16px;background:var(--card)}
+.pool .wire{width:clamp(34px,9.6vw,54px);height:clamp(90px,23vw,118px)}
+.pool .wire.sel,.slotbox .wire.sel{outline:3px solid var(--accent-2);transform:translateY(-4px)}
+.pool .empty{align-self:center;color:var(--muted);font-size:14px}
+.row-btns{display:flex;gap:10px;margin-top:14px}
+.btn{border:0;border-radius:14px;padding:12px 18px;font-weight:700;background:var(--accent);color:#fff;flex:1}
+.btn.alt{background:var(--card);color:var(--ink);border:2px solid var(--line)}
+.btn.dark{background:var(--ink);color:var(--bg)}
+.msg{margin-top:12px;min-height:22px;font-weight:700;text-align:center}
+@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+
+/* ---------- level 3 ---------- */
+.qcard{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px}
+.qcard h3{font-size:17px;margin-bottom:12px}
+.ends{display:grid;gap:12px}
+.end .lab{font-weight:700;font-size:14px;margin-bottom:4px}
+.end .e8{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.end .ec{text-align:center;font-size:10px;line-height:1.2}
+.end .ec .chipc{height:46px;border-radius:7px;border:1.5px solid rgba(0,0,0,.3);margin:2px 0}
+.end .ec b{font-size:11px}
+.legend{margin:10px 0 0;color:var(--muted);font-size:12.5px}
+.dot{display:inline-block;width:14px;height:14px;border-radius:4px;border:1.5px solid rgba(0,0,0,.35);margin-right:8px;vertical-align:-2px}
+.end .ec .chipc.q{background:var(--peach);border-style:dashed;display:grid;place-items:center;font-weight:800;font-size:18px}
+.pair{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 4px;font-family:Montserrat,Arial,sans-serif;
+  font-weight:800;font-size:clamp(18px,5.5vw,24px)}
+.pair .dev{background:var(--peach);border-radius:14px;padding:10px 16px}
+.pair .ln{flex:0 0 36px;height:6px;border-radius:3px;background:var(--ink);opacity:.75}
+.opts{display:grid;gap:10px;margin-top:14px}
+.opt{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:13px 16px;text-align:left;font-weight:700}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.right{background:var(--ok-bg);border-color:var(--ok)}
+.opt.wrong{background:var(--bad-bg);border-color:var(--bad)}
+.fb{margin-top:14px;border-radius:14px;padding:12px 14px;font-size:14.5px}
+.fb.ok{background:var(--ok-bg)}
+.fb.bad{background:var(--bad-bg)}
+.fb b{display:block;margin-bottom:2px}
+
+/* ---------- result ---------- */
+.result{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:24px 18px;text-align:center}
+.result .stars{font-size:46px;margin:6px 0 4px}
+.result h2{font-size:22px}
+.result p{color:var(--muted);margin:6px auto 0;max-width:44ch}
+.stat{display:flex;justify-content:center;gap:10px;margin:14px 0 4px;flex-wrap:wrap}
+.stat span{background:var(--peach);border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px}
+.result .row-btns{flex-wrap:wrap}
+.result .row-btns .btn{min-width:130px}
+.note{margin-top:14px;font-size:12.5px;color:var(--muted);text-align:left}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="view"></div>
+
+<script>
+/* ===================== data ===================== */
+var WIRES = {
+  wo:  {n:'Putih-Oranye', s:'P-Or', c:'#F5821F', w:1},
+  o:   {n:'Oranye',       s:'Or',   c:'#F5821F', w:0},
+  wg:  {n:'Putih-Hijau',  s:'P-Hj', c:'#2E9E4F', w:1},
+  g:   {n:'Hijau',        s:'Hj',   c:'#2E9E4F', w:0},
+  b:   {n:'Biru',         s:'Bi',   c:'#1F6FD1', w:0},
+  wb:  {n:'Putih-Biru',   s:'P-Bi', c:'#1F6FD1', w:1},
+  wbr: {n:'Putih-Coklat', s:'P-Cl', c:'#7B4B2A', w:1},
+  br:  {n:'Coklat',       s:'Cl',   c:'#7B4B2A', w:0}
+};
+var T568B = ['wo','o','wg','b','wb','g','wbr','br'];
+var T568A = ['wg','g','wo','b','wb','o','wbr','br'];
+
+function wireBG(k){
+  var w = WIRES[k];
+  return w.w ? 'repeating-linear-gradient(135deg,#FFFFFF 0 6px,' + w.c + ' 6px 12px)' : w.c;
+}
+function eq(a,b){ for (var i=0;i<a.length;i++){ if(a[i]!==b[i]) return false; } return true; }
+function shuffle(a){
+  a = a.slice();
+  for (var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+
+/* ===================== storage (opsional) ===================== */
+function loadBest(){
+  try { var r = localStorage.getItem('kabel_utp_best'); if (r) return JSON.parse(r); } catch(e){}
+  return {1:0,2:0,3:0};
+}
+function saveBest(level, stars){
+  try {
+    var b = loadBest();
+    if (stars > (b[level]||0)) { b[level] = stars; localStorage.setItem('kabel_utp_best', JSON.stringify(b)); }
+  } catch(e){}
+}
+function starsHTML(n){
+  var s = '<span class="stars" aria-label="' + n + ' dari 3 bintang">';
+  for (var i=1;i<=3;i++) s += i<=n ? '★' : '<span class="off">★</span>';
+  return s + '</span>';
+}
+
+/* ===================== util ===================== */
+var view = document.getElementById('view');
+var timerId = null;
+function clearTimer(){ if (timerId){ clearInterval(timerId); timerId = null; } }
+
+/* ===================== menu ===================== */
+function showMenu(){
+  clearTimer();
+  var best = loadBest();
+  var deco = ['wo','o','wg','b','wb','g','wbr','br'].map(function(k){
+    return '<i style="background:' + wireBG(k) + '"></i>';
+  }).join('');
+  view.innerHTML =
+    '<div class="hero"><div class="plugdeco" aria-hidden="true">' + deco + '</div>' +
+    '<h1>Susun Kabel UTP</h1>' +
+    '<p>Latihan menyusun warna kabel RJ-45 untuk kabel straight (lurus) dan crossover (silang).</p></div>' +
+    '<div class="levels">' +
+    lvlBtn(1,'Mudah','Ujung 1 sudah jadi. Susun ujung 2 jadi kabel straight (lurus)',best[1]) +
+    lvlBtn(2,'Sedang','Susun kedua ujung dari ingatan jadi kabel crossover (silang), 2 menit',best[2]) +
+    lvlBtn(3,'Sulit','8 soal acak: tebak jenis kabel, isi pin kosong, cari yang tertukar',best[3]) +
+    '</div>' +
+    '<p class="foot">Semua level terbuka. Mulai dari mana saja. Rujukan: Modul Sistem Jaringan Komputer (Pusdiklat BPS, 2025), hal. 43-44.</p>';
+  Array.prototype.forEach.call(view.querySelectorAll('.lvl'), function(b){
+    b.addEventListener('click', function(){ startLevel(+b.dataset.l); });
+  });
+}
+function lvlBtn(n, name, desc, st){
+  return '<button class="lvl" data-l="' + n + '"><span class="no">' + n + '</span>' +
+    '<span><h2>' + name + '</h2><p>' + desc + '</p></span>' + starsHTML(st||0) + '</button>';
+}
+function startLevel(n){
+  if (n === 3) startQuiz(); else startBoard(n);
+}
+
+/* ===================== level 1 & 2: susun dua ujung ===================== */
+var TYPE_NAME = {S:'Straight (lurus)', C:'Crossover (silang)'};
+function stdArr(s){ return s === 'A' ? T568A : T568B; }
+function blank(){ return [null,null,null,null,null,null,null,null]; }
+function stdOf(slots){ return eq(slots,T568A) ? 'A' : (eq(slots,T568B) ? 'B' : null); }
+function bestMatch(slots){
+  var best = {std:'B', n:-1};
+  ['A','B'].forEach(function(s){
+    var t = stdArr(s), n = 0;
+    for (var i=0;i<8;i++) if (slots[i] === t[i]) n++;
+    if (n > best.n) best = {std:s, n:n};
+  });
+  return best;
+}
+function guideHTML(title){
+  var h = '<div class="guide"><h3>' + title + '</h3><div class="g8 head"><span class="gl"></span>';
+  for (var i=1;i<=8;i++) h += '<b>' + i + '</b>';
+  h += '</div>';
+  ['A','B'].forEach(function(s){
+    h += '<div class="g8"><span class="gl">T568' + s + '</span>';
+    stdArr(s).forEach(function(k){
+      h += '<div class="gc"><div class="sw" style="background:' + wireBG(k) + '"></div>' + WIRES[k].s + '</div>';
+    });
+    h += '</div>';
+  });
+  return h + '<p class="rule">Straight (lurus): kedua ujung urutannya sama. Crossover (silang): satu ujung T568A, ujung lainnya T568B.</p></div>';
+}
+
+function startBoard(level){
+  clearTimer();
+  var game = {level:level, types:[level === 1 ? 'S' : 'C'], round:0, mistakes:0, checks:0, left:120, paused:false, done:false};
+  view.innerHTML =
+    '<div class="bar"><button class="back" id="bk">&larr; Menu</button>' +
+    '<h2>Level ' + level + (level === 1 ? ': Mudah' : ': Sedang') + '</h2></div><div id="stage"></div>';
+  document.getElementById('bk').onclick = showMenu;
+  if (level === 2) {
+    timerId = setInterval(function(){
+      if (game.done || game.paused) return;
+      game.left--;
+      var c = document.getElementById('tchip');
+      if (c) { c.textContent = game.left + ' dtk'; c.className = 'chip' + (game.left <= 20 ? ' warn' : ''); }
+      if (game.left <= 0) { game.left = 0; loseGame(game); }
+    }, 1000);
+  }
+  startRound(game);
+}
+
+function startRound(game){
+  var level = game.level, type = game.types[game.round];
+  var stage = document.getElementById('stage');
+  var std1 = pick(['A','B']);
+  var secs;
+  if (level === 1) {
+    var t2 = stdArr(type === 'S' ? std1 : (std1 === 'A' ? 'B' : 'A'));
+    secs = [
+      {label:'Ujung 1 (sudah jadi: T568' + std1 + ')', locked:true, slots:stdArr(std1).slice()},
+      {label:'Ujung 2 (susun di sini)', locked:false, slots:blank(), order:shuffle(t2), target:t2}
+    ];
+  } else {
+    secs = [
+      {label:'Ujung 1', locked:false, slots:blank(), order:shuffle(T568B)},
+      {label:'Ujung 2', locked:false, slots:blank(), order:shuffle(T568B)}
+    ];
+  }
+  var st = {secs:secs, sel:null, msg:'', done:false};
+  var drag = null;
+  game.paused = false;
+
+  var task = level === 1
+    ? 'Ujung 1 sudah jadi. Susun Ujung 2 agar kabelnya <b>' + TYPE_NAME[type] + '</b>.'
+    : 'Susun kedua ujung agar kabelnya <b>' + TYPE_NAME[type] + '</b>.';
+  stage.innerHTML =
+    '<div class="status">' +
+    (level === 1 ? '<span class="chip" id="mchip"></span>' : '<span class="chip" id="tchip">' + game.left + ' dtk</span>') + '</div>' +
+    '<div class="task">' + task + '</div>' +
+        '<div id="board" class="compact"></div>';
+  var board = document.getElementById('board');
+
+  function wireBtn(k, sel){
+    return '<button class="wire' + (sel ? ' sel' : '') + '" data-key="' + k + '" draggable="true" ' +
+      'style="background:' + wireBG(k) + '" aria-label="' + WIRES[k].n + '"><span class="wl">' + WIRES[k].s + '</span></button>';
+  }
+  function isSel(si, type_, idx, key){
+    var s = st.sel;
+    if (!s || s.sec !== si || s.type !== type_) return false;
+    return type_ === 'slot' ? s.idx === idx : s.key === key;
+  }
+
+  function draw(){
+    var h = '';
+    st.secs.forEach(function(sec, si){
+      h += '<div class="sec' + (sec.locked ? ' locked' : '') + '" data-sec="' + si + '"><div class="seclabel">' + sec.label + '</div><div class="plug">';
+      for (var i=0;i<8;i++){
+        var k = sec.slots[i];
+        var cls = 'slotbox';
+        if (isSel(si,'slot',i)) cls += ' sel';
+        if (!sec.locked && level === 1 && k) cls += (k === sec.target[i] ? ' ok' : ' bad');
+        h += '<div class="slot" data-slot="' + i + '"><div class="' + cls + '">';
+        if (k) {
+          if (sec.locked) h += '<div class="wire static" data-key="' + k + '" style="background:' + wireBG(k) + '"><span class="wl">' + WIRES[k].s + '</span></div>';
+          else h += wireBtn(k, isSel(si,'slot',i));
+        }
+        h += '</div><div class="pin">' + (i+1) + '</div></div>';
+      }
+      h += '</div>';
+      if (!sec.locked) {
+        h += '<div class="pool" data-pool="1">';
+        var inPool = sec.order.filter(function(k){ return sec.slots.indexOf(k) < 0; });
+        if (!inPool.length) h += '<span class="empty">Semua kabel sudah dipasang</span>';
+        inPool.forEach(function(k){ h += wireBtn(k, isSel(si,'pool',null,k)); });
+        h += '</div>';
+      }
+      h += '</div>';
+    });
+    h += '<div class="row-btns"><button class="btn alt" id="rs">Ulangi</button>' +
+         (level === 2 ? '<button class="btn" id="ck">Periksa</button>' : '') + '</div><div class="msg" id="msg"></div>';
+    board.innerHTML = h;
+    document.getElementById('msg').textContent = st.msg;
+    var mc = document.getElementById('mchip');
+    if (mc) mc.textContent = 'Salah: ' + game.mistakes;
+    document.getElementById('rs').onclick = function(){
+      if (st.done) return;
+      st.secs.forEach(function(s){ if (!s.locked) s.slots = blank(); });
+      st.sel = null; st.msg = ''; draw();
+    };
+    var ck = document.getElementById('ck');
+    if (ck) ck.onclick = check;
+  }
+
+  function place(si, idx, key, from){
+    var sec = st.secs[si];
+    var prev = sec.slots[idx];
+    if (from !== null && from !== undefined) sec.slots[from] = prev;
+    sec.slots[idx] = key;
+    if (level === 1 && key !== sec.target[idx]) game.mistakes++;
+    st.msg = '';
+  }
+  function afterChange(){
+    draw();
+    if (level === 1 && eq(st.secs[1].slots, st.secs[1].target)) roundDone();
+  }
+
+  board.addEventListener('click', function(e){
+    if (st.done) return;
+    var secEl = e.target.closest('[data-sec]');
+    if (!secEl) return;
+    var si = +secEl.dataset.sec, sec = st.secs[si];
+    if (sec.locked) return;
+    if (st.sel && st.sel.sec !== si) st.sel = null;
+    var slotEl = e.target.closest('[data-slot]');
+    if (slotEl) {
+      var i = +slotEl.dataset.slot;
+      if (st.sel) {
+        if (st.sel.type === 'slot' && st.sel.idx === i) { st.sel = null; draw(); return; }
+        if (st.sel.type === 'slot') place(si, i, st.sel.key, st.sel.idx); else place(si, i, st.sel.key, null);
+        st.sel = null; afterChange();
+      } else if (sec.slots[i]) {
+        st.sel = {sec:si, type:'slot', idx:i, key:sec.slots[i]}; draw();
+      }
+      return;
+    }
+    var pw = e.target.closest('[data-pool] [data-key]');
+    if (pw) {
+      var key = pw.dataset.key;
+      st.sel = (st.sel && st.sel.type === 'pool' && st.sel.key === key) ? null : {sec:si, type:'pool', key:key};
+      draw(); return;
+    }
+    if (e.target.closest('[data-pool]') && st.sel && st.sel.type === 'slot') {
+      sec.slots[st.sel.idx] = null; st.sel = null; draw();
+    }
+  });
+
+  /* drag & drop (desktop) */
+  board.addEventListener('dragstart', function(e){
+    var w = e.target.closest('[data-key]');
+    if (!w || st.done) return;
+    var secEl = w.closest('[data-sec]');
+    if (!secEl || st.secs[+secEl.dataset.sec].locked) return;
+    var s = w.closest('[data-slot]');
+    drag = {sec:+secEl.dataset.sec, key:w.dataset.key, from: s ? +s.dataset.slot : null};
+    try { e.dataTransfer.setData('text/plain', w.dataset.key); e.dataTransfer.effectAllowed = 'move'; } catch(x){}
+  });
+  board.addEventListener('dragover', function(e){
+    if (!drag) return;
+    var secEl = e.target.closest('[data-sec]');
+    if (secEl && +secEl.dataset.sec === drag.sec && e.target.closest('[data-slot],[data-pool]')) e.preventDefault();
+  });
+  board.addEventListener('drop', function(e){
+    if (!drag || st.done) return;
+    var secEl = e.target.closest('[data-sec]');
+    if (!secEl || +secEl.dataset.sec !== drag.sec) { drag = null; return; }
+    var s = e.target.closest('[data-slot]');
+    var p = e.target.closest('[data-pool]');
+    if (s) { e.preventDefault(); place(drag.sec, +s.dataset.slot, drag.key, drag.from); }
+    else if (p && drag.from !== null) { e.preventDefault(); st.secs[drag.sec].slots[drag.from] = null; }
+    else { drag = null; return; }
+    drag = null; st.sel = null; afterChange();
+  });
+
+  /* level 2: periksa */
+  function check(){
+    if (st.done) return;
+    var a = st.secs[0].slots, b = st.secs[1].slots;
+    if (a.indexOf(null) >= 0 || b.indexOf(null) >= 0) { st.msg = 'Pasang semua kabel di kedua ujung dulu.'; draw(); return; }
+    game.checks++;
+    var s1 = stdOf(a), s2 = stdOf(b), parts = [];
+    [[a,s1,'Ujung 1'],[b,s2,'Ujung 2']].forEach(function(x){
+      if (!x[1]) { var m = bestMatch(x[0]); parts.push(x[2] + ': baru ' + m.n + ' dari 8 pin cocok dengan T568' + m.std + '.'); }
+    });
+    if (parts.length) { st.msg = parts.join(' '); draw(); return; }
+    if (type === 'S' && s1 !== s2) { st.msg = 'Kedua ujung sudah sesuai standar, tapi berbeda. Straight (lurus) butuh ujung yang sama.'; draw(); return; }
+    if (type === 'C' && s1 === s2) { st.msg = 'Kedua ujung sama. Crossover (silang) butuh satu ujung T568A dan satu T568B.'; draw(); return; }
+    roundDone();
+  }
+
+  function roundDone(){
+    if (st.done) return;
+    st.done = true; game.paused = true;
+    finishGame(game);
+  }
+
+  draw();
+}
+
+function finishGame(game){
+  game.done = true; clearTimer();
+  var level = game.level, stars, stat, msg;
+  if (level === 1) {
+    stars = game.mistakes <= 1 ? 3 : (game.mistakes <= 4 ? 2 : 1);
+    stat = ['Salah letak: ' + game.mistakes];
+    msg = stars === 3 ? 'Rapi. Straight (lurus): ujung 2 sama persis dengan ujung 1.' : 'Berhasil. Straight (lurus) artinya kedua ujung urutannya sama.';
+  } else {
+    stars = game.left >= 60 ? 3 : (game.left >= 25 ? 2 : 1);
+    stat = ['Sisa waktu: ' + game.left + ' dtk', 'Pemeriksaan: ' + game.checks + 'x'];
+    msg = stars === 3 ? 'Rapi. Crossover (silang): T568A di satu ujung, T568B di ujung lainnya.' : 'Berhasil. Ulangi untuk lebih cepat dan tepat.';
+  }
+  saveBest(level, stars);
+  showResult({level:level, stars:stars, title:'Kabel selesai!', text:msg, stats:stat});
+}
+function loseGame(game){
+  game.done = true; clearTimer();
+  showResult({level:2, stars:0, title:'Waktu habis', text:'Pelajari urutannya dulu, lalu coba lagi.', stats:['Pemeriksaan: ' + game.checks + 'x'],
+    extra:guideHTML('Urutan yang benar')});
+}
+
+/* ===================== level 3: kuis ===================== */
+var PAIRS_S = [
+  ['PC','Switch','PC dan Switch berbeda fungsi (dissimilar devices), jadi memakai straight (lurus).'],
+  ['Router','Switch','Router dan Switch berbeda fungsi, jadi memakai straight (lurus).'],
+  ['Router','Hub','Router dan Hub berbeda fungsi, jadi memakai straight (lurus).'],
+  ['PC','Hub','PC dan Hub berbeda fungsi, jadi memakai straight (lurus).']
+];
+var PAIRS_C = [
+  ['PC','PC','Dua PC (peer-to-peer) adalah perangkat sejenis, jadi memakai crossover (silang).'],
+  ['Switch','Switch','Dua Switch adalah perangkat sejenis, jadi memakai crossover (silang).'],
+  ['Hub','Hub','Dua Hub adalah perangkat sejenis, jadi memakai crossover (silang).'],
+  ['PC','Router','Menurut modul, PC ke Router termasuk crossover (silang).']
+];
+function swapPair(arr, i, j){ var a = arr.slice(); var t = a[i]; a[i] = a[j]; a[j] = t; return a; }
+function randomPair(){
+  var i = Math.floor(Math.random()*8), j;
+  do { j = Math.floor(Math.random()*8); } while (j === i);
+  return i < j ? [i,j] : [j,i];
+}
+function listStd(arr){ return arr.map(function(k,i){ return (i+1) + ' ' + WIRES[k].n; }).join(', '); }
+function colorOpt(k){ return {k:k, t:'<span class="dot" style="background:' + wireBG(k) + '"></span>' + WIRES[k].n}; }
+function opt(k, t){ return {k:k, t:t}; }
+var TYPEOPTS3 = [opt('S','Straight (lurus)'), opt('C','Crossover (silang)'), opt('X','Tidak sesuai standar')];
+var TYPEOPTS2 = [opt('S','Straight (lurus)'), opt('C','Crossover (silang)')];
+function flip(a, b){ return Math.random() < .5 ? [b, a] : [a, b]; }
+
+/* --- generator soal --- */
+function qVisual(t){
+  var std = pick(['A','B']), e1, e2, why;
+  if (t === 'S') {
+    e1 = stdArr(std).slice(); e2 = stdArr(std).slice();
+    why = 'Kedua ujung memakai urutan yang sama (T568' + std + '), jadi ini straight (lurus). Dipakai untuk menghubungkan perangkat berbeda fungsi, misalnya PC ke Switch.';
+  } else if (t === 'C') {
+    e1 = T568A.slice(); e2 = T568B.slice();
+    why = 'Satu ujung T568A dan ujung lainnya T568B (pasangan pin 1,2 bertukar dengan 3,6), jadi ini crossover (silang). Dipakai untuk perangkat sejenis, misalnya PC ke PC atau Switch ke Switch.';
+  } else {
+    var ij = randomPair(), base = stdArr(std).slice();
+    e1 = base; e2 = swapPair(base, ij[0], ij[1]);
+    why = 'Satu ujung menyimpang dari standar: kabel di pin ' + (ij[0]+1) + ' dan pin ' + (ij[1]+1) + ' tertukar. Susunan ini bukan T568A maupun T568B, jadi bukan straight dan bukan crossover.';
+  }
+  var e = flip(e1, e2);
+  return {type:'vis' + t, prompt:'Kabel apa ini?', vis:[{label:'Ujung 1', arr:e[0]}, {label:'Ujung 2', arr:e[1]}], opts:TYPEOPTS3, ans:t, why:why};
+}
+function qPair(t){
+  var p = pick(t === 'S' ? PAIRS_S : PAIRS_C);
+  return {type:'pair' + t, prompt:'Kabel apa yang dipakai untuk menghubungkan:', pair:[p[0], p[1]], opts:TYPEOPTS2, ans:t, why:p[2]};
+}
+function qWhich(t){
+  var good = pick(t === 'S' ? PAIRS_S : PAIRS_C);
+  var bad = shuffle(t === 'S' ? PAIRS_C : PAIRS_S).slice(0, 3);
+  var all = shuffle([good].concat(bad));
+  return {type:'which' + t, prompt:'Perangkat mana yang dihubungkan dengan kabel ' + (t === 'S' ? 'straight (lurus)' : 'crossover (silang)') + '?',
+    opts:all.map(function(p){ return opt(p[0] + '-' + p[1], p[0] + ' ke ' + p[1]); }), ans:good[0] + '-' + good[1], why:good[2]};
+}
+function qPin(){
+  var std = pick(['A','B']), arr = stdArr(std), i = Math.floor(Math.random()*8), c = arr[i];
+  var others = shuffle(Object.keys(WIRES).filter(function(k){ return k !== c; })).slice(0, 3);
+  return {type:'pin', prompt:'Pada urutan T568' + std + ', kabel di pin ' + (i+1) + ' berwarna?',
+    opts:shuffle([c].concat(others)).map(colorOpt), ans:c, why:'T568' + std + ': ' + listStd(arr) + '.'};
+}
+function qMissing(){
+  var std = pick(['A','B']), arr = stdArr(std), i = 1 + Math.floor(Math.random()*7), c = arr[i];
+  var others = shuffle(Object.keys(WIRES).filter(function(k){ return k !== c; })).slice(0, 3);
+  return {type:'missing', prompt:'Satu pin masih kosong (?). Warna apa yang tepat agar urutannya sesuai standar T568A atau T568B?',
+    vis:[{label:'Satu ujung kabel', arr:arr, hide:i}], opts:shuffle([c].concat(others)).map(colorOpt), ans:c,
+    why:'Pin 1 menunjukkan urutan ini adalah T568' + std + ': ' + listStd(arr) + '.'};
+}
+function qComplete(t){
+  var std = pick(['A','B']), other = std === 'A' ? 'B' : 'A', ans = t === 'S' ? std : other;
+  return {type:'complete' + t, prompt:'Ujung 1 memakai T568' + std + '. Agar kabel ini ' + (t === 'S' ? 'straight (lurus)' : 'crossover (silang)') + ', Ujung 2 harus memakai?',
+    vis:[{label:'Ujung 1 (T568' + std + ')', arr:stdArr(std)}, {label:'Ujung 2', arr:null}],
+    opts:[opt('A','T568A'), opt('B','T568B'), opt('X','Urutan bebas, asal 8 kabel lengkap')], ans:ans,
+    why: t === 'S' ? 'Straight: kedua ujung urutannya sama, jadi Ujung 2 juga T568' + std + '.' : 'Crossover: satu ujung T568A dan ujung lainnya T568B, jadi Ujung 2 memakai T568' + other + '.'};
+}
+function qDiff(){
+  var e = flip(T568A, T568B);
+  var o = [opt('p1236','Pin 1, 2, 3, dan 6'), opt('p1278','Pin 1, 2, 7, dan 8'), opt('p4578','Pin 4, 5, 7, dan 8'), opt('pall','Semua pin')];
+  return {type:'diff', prompt:'Pada kabel crossover ini, pin mana saja yang warnanya berbeda antara Ujung 1 dan Ujung 2?',
+    vis:[{label:'Ujung 1', arr:e[0].slice()}, {label:'Ujung 2', arr:e[1].slice()}], opts:shuffle(o), ans:'p1236',
+    why:'Pasangan oranye dan hijau saling bertukar (pin 1,2 dengan pin 3,6). Pin 4, 5, 7, dan 8 (biru dan coklat) sama di kedua ujung.'};
+}
+function pinTxt(p){ return 'Pin ' + (p[0]+1) + ' dan pin ' + (p[1]+1); }
+function qSwap(){
+  var std = pick(['A','B']), base = stdArr(std).slice(), ij = randomPair(), bad = swapPair(base, ij[0], ij[1]);
+  var seen = {}, key = function(p){ return p[0] + '-' + p[1]; }; seen[key(ij)] = 1;
+  var opts = [opt(key(ij), pinTxt(ij))];
+  while (opts.length < 4) { var p = randomPair(); if (!seen[key(p)]) { seen[key(p)] = 1; opts.push(opt(key(p), pinTxt(p))); } }
+  var e = flip(base, bad);
+  return {type:'swap', prompt:'Satu ujung menyimpang dari standar T568' + std + ' karena dua kabel tertukar. Pin berapa yang tertukar?',
+    vis:[{label:'Ujung 1', arr:e[0]}, {label:'Ujung 2', arr:e[1]}], opts:shuffle(opts), ans:key(ij),
+    why:'Hanya dua pin yang berbeda antar ujung: ' + pinTxt(ij).toLowerCase() + ' (' + WIRES[base[ij[0]]].n + ' dan ' + WIRES[base[ij[1]]].n + ').'};
+}
+var KNOW = [
+  {type:'know', prompt:'Menurut modul, kabel straight umumnya mengikuti standar?', ans:'b',
+   opts:[opt('a','T568A di satu ujung dan T568B di ujung lain'), opt('b','T568B di kedua ujung'), opt('c','Urutan warna bebas'), opt('d','Hanya T568A')],
+   why:'Modul (hal. 43): straight-through memakai urutan yang sama di kedua ujung, umumnya TIA/EIA-568B.'},
+  {type:'know', prompt:'Konektor yang dipasang pada ujung kabel UTP untuk jaringan LAN adalah?', ans:'c',
+   opts:[opt('a','BNC'), opt('b','RJ-11'), opt('c','RJ-45'), opt('d','SC')],
+   why:'Modul membahas pemasangan konektor RJ-45 pada kabel UTP.'},
+  {type:'know', prompt:'Menurut modul, kabel UTP yang umum dipakai untuk koneksi wired adalah?', ans:'b',
+   opts:[opt('a','Category 3'), opt('b','Category 6 atau 6a'), opt('c','Coaxial RG-58'), opt('d','Kabel telepon')],
+   why:'Modul (hal. 43): kabel UTP Category 6/6a umum digunakan untuk koneksi wired.'},
+  {type:'know', prompt:'Standar structured cabling yang dirujuk modul adalah?', ans:'a',
+   opts:[opt('a','TIA/EIA-568'), opt('b','ISO/IEC 27001'), opt('c','IEEE 802.11ax'), opt('d','COBIT')],
+   why:'Modul (hal. 43): structured cabling system mengikuti standar TIA/EIA-568.'}
+];
+function makeQuestions(){
+  var g1 = [function(){return qVisual('S');}, function(){return qVisual('C');}, function(){return qVisual('X');},
+            function(){return qPair('S');}, function(){return qPair('C');}, function(){return qWhich('S');}, function(){return qWhich('C');}];
+  var g2 = [qPin, qMissing, function(){return qComplete('S');}, function(){return qComplete('C');}, qDiff, qSwap];
+  var g3 = KNOW.map(function(k){ return function(){ return JSON.parse(JSON.stringify(k)); }; });
+  var s1 = shuffle(g1), s2 = shuffle(g2), s3 = shuffle(g3);
+  var chosen = s1.slice(0,3).concat(s2.slice(0,3), s3.slice(0,1));
+  var rest = s1.slice(3).concat(s2.slice(3), s3.slice(1));
+  chosen.push(pick(rest));
+  return shuffle(chosen).map(function(f){ return f(); });
+}
+
+function startQuiz(){
+  clearTimer();
+  var qs = makeQuestions();
+  var idx = 0, score = 0, answered = false;
+
+  function endsHTML(vis){
+    var h = '<div class="ends">';
+    vis.forEach(function(v){
+      h += '<div class="end"><div class="lab">' + v.label + '</div><div class="e8">';
+      for (var i=0;i<8;i++){
+        var k = v.arr ? v.arr[i] : null;
+        if (!v.arr || v.hide === i) h += '<div class="ec"><b>' + (i+1) + '</b><div class="chipc q">?</div>&nbsp;</div>';
+        else h += '<div class="ec"><b>' + (i+1) + '</b><div class="chipc" style="background:' + wireBG(k) + '"></div>' + WIRES[k].s + '</div>';
+      }
+      h += '</div></div>';
+    });
+    return h + '</div><p class="legend">P = Putih, Or = Oranye, Hj = Hijau, Bi = Biru, Cl = Coklat</p>';
+  }
+
+  function render(){
+    var q = qs[idx];
+    var h = '<div class="bar"><button class="back" id="bk">&larr; Menu</button><h2>Level 3: Sulit</h2>' +
+            '<span class="chip">Soal ' + (idx+1) + '/' + qs.length + '</span></div><div class="qcard"><h3>' + q.prompt + '</h3>';
+    if (q.vis) h += endsHTML(q.vis);
+    if (q.pair) h += '<div class="pair"><span class="dev">' + q.pair[0] + '</span><span class="ln"></span><span class="dev">' + q.pair[1] + '</span></div>';
+    h += '<div class="opts" id="opts">';
+    q.opts.forEach(function(o){ h += '<button class="opt" data-a="' + o.k + '">' + o.t + '</button>'; });
+    h += '</div><div id="fb"></div></div>';
+    view.innerHTML = h;
+    answered = false;
+    document.getElementById('bk').onclick = showMenu;
+    Array.prototype.forEach.call(view.querySelectorAll('.opt'), function(b){
+      b.addEventListener('click', function(){ answer(b); });
+    });
+  }
+
+  function answer(btn){
+    if (answered) return;
+    answered = true;
+    var q = qs[idx];
+    var right = btn.dataset.a === q.ans;
+    if (right) score++;
+    Array.prototype.forEach.call(view.querySelectorAll('.opt'), function(b){
+      b.disabled = true;
+      if (b.dataset.a === q.ans) b.classList.add('right');
+      else if (b === btn) b.classList.add('wrong');
+    });
+    var last = idx === qs.length - 1;
+    document.getElementById('fb').innerHTML =
+      '<div class="fb ' + (right ? 'ok' : 'bad') + '"><b>' + (right ? 'Benar' : 'Belum tepat') + '</b>' + q.why + '</div>' +
+      '<div class="row-btns"><button class="btn" id="nx">' + (last ? 'Lihat hasil' : 'Soal berikutnya') + '</button></div>';
+    document.getElementById('nx').onclick = function(){
+      if (last) finish(); else { idx++; render(); }
+    };
+    document.getElementById('nx').focus();
+  }
+
+  function finish(){
+    var stars = score >= 7 ? 3 : (score >= 5 ? 2 : (score >= 3 ? 1 : 0));
+    saveBest(3, stars);
+    var text = stars === 3 ? 'Hampir sempurna. Kabel apa pun, bisa lu baca.' : (stars === 2 ? 'Bagus. Perhatikan ujung yang tertukar.' : 'Ulangi dan perhatikan pin 1, 2, 3, dan 6.');
+    showResult({level:3, stars:stars, title:'Skor ' + score + ' dari ' + qs.length, text:text, stats:[],
+      note:'Catatan: aturan di atas mengikuti modul (klasik). Perangkat modern umumnya sudah Auto-MDIX, sehingga kabel straight pun biasanya tetap bisa dipakai antar perangkat sejenis.'});
+  }
+  render();
+}
+
+/* ===================== hasil ===================== */
+function showResult(r){
+  var h = '<div class="result">' + starsHTML(r.stars) + '<h2>' + r.title + '</h2><p>' + r.text + '</p>';
+  if (r.stats && r.stats.length) h += '<div class="stat">' + r.stats.map(function(s){ return '<span>' + s + '</span>'; }).join('') + '</div>';
+  if (r.extra) h += '<div style="margin-top:14px">' + r.extra + '</div>';
+  h += '<div class="row-btns">' +
+       '<button class="btn alt" id="rm">Menu</button>' +
+       '<button class="btn" id="ra">Main lagi</button>' +
+       (r.level < 3 && r.stars > 0 ? '<button class="btn dark" id="rn">Level ' + (r.level+1) + '</button>' : '') +
+       '</div>';
+  if (r.note) h += '<p class="note">' + r.note + '</p>';
+  h += '</div>';
+  view.innerHTML = h;
+  document.getElementById('rm').onclick = showMenu;
+  document.getElementById('ra').onclick = function(){ startLevel(r.level); };
+  var rn = document.getElementById('rn');
+  if (rn) rn.onclick = function(){ startLevel(r.level + 1); };
+}
+
+showMenu();
+</script>
+</body>
+</html>

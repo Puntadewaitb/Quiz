@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Game Prakom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FFF9F3;--card:#fff;--ink:#182255;--muted:#566086;--accent:#F79039;--accent-2:#FEBD26;--peach:#FCDDC2;--line:#F3D3B6;--ok:#14805A;--bad:#C23A3A}
+@media (prefers-color-scheme:dark){:root{--bg:#121731;--card:#1B2347;--ink:#F4EFE8;--muted:#AAB1D3;--peach:#2A3263;--line:#3A4580;--ok:#4CD6A0;--bad:#FF8A8A}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 Arial,sans-serif;-webkit-tap-highlight-color:transparent}
+h1,h2,h3{font-family:Montserrat,Arial,sans-serif;margin:0;line-height:1.2}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent-2);outline-offset:2px}
+.wrap{max-width:720px;margin:0 auto;padding:16px 14px 28px}
+.hero{background:var(--accent);color:#fff;border-radius:22px;padding:22px 20px}
+.hero h1{font-size:clamp(26px,7vw,34px);font-weight:800}
+.hero p{margin:8px 0 0;color:#FFF3E6}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;margin-top:16px}
+label{font-weight:700;display:block;margin-bottom:6px}
+input[type=text]{width:100%;border:2px solid var(--line);background:var(--bg);border-radius:12px;padding:12px 14px}
+.btn{border:0;border-radius:14px;padding:12px 18px;font-weight:700;background:var(--accent);color:#fff}
+.btn.alt{background:var(--card);color:var(--ink);border:2px solid var(--line)}
+.btn.full{width:100%;margin-top:12px}
+.err{color:var(--bad);font-weight:700;min-height:22px;margin:8px 0 0;font-size:14px}
+.top{display:flex;align-items:center;gap:10px;justify-content:space-between;margin:2px 0 4px}
+.who{font-weight:700}
+.chip{background:var(--peach);border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;white-space:nowrap}
+.sync{font-size:13px;color:var(--muted);margin-top:6px}
+.sync b.ok{color:var(--ok)} .sync b.bad{color:var(--bad)}
+.tema{margin:18px 0 8px;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.games{display:grid;gap:12px}
+.g{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px 16px;width:100%}
+.g:hover{border-color:var(--accent)}
+.g .em{font-size:30px;width:46px;height:46px;display:grid;place-items:center;background:var(--peach);border-radius:50%}
+.g h2{font-size:17px} .g p{margin:3px 0 0;color:var(--muted);font-size:14px}
+.stars{color:var(--accent-2);letter-spacing:2px;font-size:17px;white-space:nowrap}
+.stars .off{color:var(--line)}
+.row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.row .btn{flex:1}
+#play{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg)}
+#play .pb{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:2px solid var(--line);padding-top:max(8px,env(safe-area-inset-top))}
+#play .pb b{flex:1;font-family:Montserrat,Arial,sans-serif;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#play iframe{flex:1;width:100%;border:0}
+.hidden{display:none!important}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-size:12px;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div id="play" class="hidden"><div class="pb"><button class="btn alt" id="pback">&larr; Daftar Game</button><b id="ptitle"></b></div><iframe id="frame" title="Game"></iframe></div>
+<script>
+/* ===== KONFIGURASI: tempel URL Web App Google Apps Script di sini (lihat tools/apps-script/README.md) ===== */
+var SHEET_URL = '__SHEET_URL__';
+/* ================================================================================================ */
+
+var GAMES = [
+  {key:'kabel', title:'Susun Kabel UTP', emoji:'🔌', tema:'Sisjarkom', desc:'Urutan pin T568A/T568B, straight vs crossover.', html:__G_kabel__},
+  {key:'osi', title:'Sortir OSI', emoji:'🧱', tema:'Sisjarkom', desc:'Kelompokkan protokol dan perangkat ke 7 layer OSI.', html:__G_osi__},
+  {key:'detektif', title:'Detektif Jaringan', emoji:'🕵️', tema:'Sisjarkom', desc:'Troubleshooting jaringan langkah demi langkah.', html:__G_detektif__},
+  {key:'tracer', title:'Mini Packet Tracer', emoji:'🖧', tema:'Sisjarkom', desc:'Konfigurasi dan perbaiki jaringan mini.', html:__G_tracer__},
+  {key:'pengadaan', title:'Urutan Pengadaan', emoji:'📋', tema:'Man TI', desc:'Susun tahapan pengadaan TI dengan benar.', html:__G_pengadaan__},
+  {key:'lifecycle', title:'Sortir Lifecycle', emoji:'♻️', tema:'Man TI', desc:'Kelompokkan kegiatan ke fase lifecycle aset TI.', html:__G_lifecycle__}
+];
+var HOOK = '<script>(function(){var o=showResult;showResult=function(r){try{parent.postMessage({quizResult:1,level:r.level,stars:r.stars,title:String(r.title||"").replace(/<[^>]*>/g,""),stats:(r.stats||[]).join("; ")},"*")}catch(e){}return o(r)}})();<\/script>';
+
+var app = document.getElementById('app'), play = document.getElementById('play'), frame = document.getElementById('frame');
+var player = null, current = null;
+var LS = {
+  get:function(k,d){ try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set:function(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function gameByKey(k){ return GAMES.filter(function(g){ return g.key === k; })[0]; }
+
+/* ---------- data lokal: log + antrean kirim ---------- */
+var log = LS.get('pk_log', []);       /* semua hasil (untuk CSV & progres) */
+var queue = LS.get('pk_queue', []);   /* belum terkirim ke Sheet */
+var syncState = '';
+
+function flush(){
+  if (!SHEET_URL || !queue.length) { render(); return Promise.resolve(); }
+  var batch = queue.slice();
+  syncState = 'sending'; render();
+  return fetch(SHEET_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({rows:batch})})
+    .then(function(){
+      var ids = {}; batch.forEach(function(r){ ids[r.id] = 1; });
+      queue = queue.filter(function(r){ return !ids[r.id]; });
+      LS.set('pk_queue', queue); syncState = 'ok'; render();
+    })
+    .catch(function(){ syncState = 'fail'; render(); });
+}
+function record(r){
+  var row = {id:Date.now() + '-' + Math.random().toString(36).slice(2,7), waktu:new Date().toISOString(), nama:player,
+    game:current.title, tema:current.tema, level:r.level, bintang:r.stars, hasil:r.title, detail:r.stats};
+  log.push(row); queue.push(row);
+  LS.set('pk_log', log); LS.set('pk_queue', queue);
+  flush();
+}
+window.addEventListener('message', function(e){
+  if (e.source !== frame.contentWindow || !e.data || !e.data.quizResult || !current || !player) return;
+  record(e.data);
+});
+
+/* ---------- progres pemain (bintang terbaik per game/level) ---------- */
+function best(gk){
+  var b = {1:0,2:0,3:0};
+  log.forEach(function(r){ if (r.nama === player && r.game === gameByKey(gk).title && r.bintang > (b[r.level]||0)) b[r.level] = r.bintang; });
+  return b;
+}
+function starsHTML(n){ var s = ''; for (var i=1;i<=3;i++) s += i<=n ? '★' : '<span class="off">★</span>'; return '<span class="stars">' + s + '</span>'; }
+function totalStars(){ return GAMES.reduce(function(t,g){ var b = best(g.key); return t + b[1] + b[2] + b[3]; }, 0); }
+
+/* ---------- tampilan ---------- */
+function render(){
+  if (!player) return renderLogin();
+  var h = '<div class="top"><span class="who">👤 ' + esc(player) + '</span><span class="chip">⭐ ' + totalStars() + ' / ' + (GAMES.length*9) + '</span></div>';
+  var st = !SHEET_URL ? '<b class="bad">Google Sheet belum dikonfigurasi</b>, hasil hanya tersimpan di perangkat ini.' :
+    syncState === 'sending' ? 'Mengirim rekap ke Google Sheet...' :
+    queue.length ? '<b class="bad">' + queue.length + ' hasil belum terkirim.</b> <a href="#" id="retry">Kirim ulang</a>' :
+    '<b class="ok">Rekap tersinkron ke Google Sheet.</b>';
+  h += '<p class="sync">' + st + '</p>';
+  var tema = '';
+  h += '<div class="games">';
+  GAMES.forEach(function(g){
+    if (g.tema !== tema) { tema = g.tema; h += '</div><div class="tema">' + esc(tema) + '</div><div class="games">'; }
+    var b = best(g.key), mx = Math.max(b[1],b[2],b[3]);
+    h += '<button class="g" data-k="' + g.key + '"><span class="em">' + g.emoji + '</span><span><h2>' + g.title + '</h2><p>' + g.desc + '</p></span>' +
+         '<span>' + starsHTML(b[1]+b[2]+b[3] ? Math.round((b[1]+b[2]+b[3])/3) : 0) + '</span></button>';
+  });
+  h += '</div><div class="row"><button class="btn alt" id="rekap">Rekap saya</button><button class="btn alt" id="csv">Unduh CSV</button><button class="btn alt" id="out">Ganti pemain</button></div>';
+  app.innerHTML = h;
+  Array.prototype.forEach.call(app.querySelectorAll('.g'), function(b){ b.onclick = function(){ open(b.dataset.k); }; });
+  document.getElementById('rekap').onclick = renderRekap;
+  document.getElementById('csv').onclick = downloadCSV;
+  document.getElementById('out').onclick = function(){ player = null; try{ sessionStorage.removeItem('pk_player'); }catch(e){} render(); };
+  var rt = document.getElementById('retry'); if (rt) rt.onclick = function(ev){ ev.preventDefault(); flush(); };
+}
+function renderLogin(){
+  app.innerHTML = '<div class="hero"><h1>Game Prakom</h1><p>6 game, 3 level. Sisjarkom dan Manajemen TI.</p></div>' +
+    '<form class="card" id="f"><label for="nm">Nama kamu</label><input type="text" id="nm" maxlength="60" autocomplete="name" placeholder="Nama lengkap" value="' + esc(LS.get('pk_lastname','')) + '">' +
+    '<p class="err" id="er"></p><button class="btn full" type="submit">Mulai</button></form>';
+  var nm = document.getElementById('nm'); nm.focus();
+  document.getElementById('f').onsubmit = function(e){
+    e.preventDefault();
+    var v = nm.value.replace(/\s+/g,' ').trim();
+    if (v.length < 2) { document.getElementById('er').textContent = 'Isi nama dulu (minimal 2 huruf).'; return; }
+    player = v; LS.set('pk_lastname', v);
+    try{ sessionStorage.setItem('pk_player', v); }catch(e2){}
+    render(); flush();
+  };
+}
+function renderRekap(){
+  var mine = log.filter(function(r){ return r.nama === player; }).slice().reverse();
+  var h = '<div class="top"><h2>Rekap ' + esc(player) + '</h2><button class="btn alt" id="bk">&larr; Kembali</button></div><div class="card">';
+  if (!mine.length) h += '<p>Belum ada hasil. Selesaikan satu level dulu.</p>';
+  else {
+    h += '<table><tr><th>Game</th><th>Lv</th><th>Bintang</th><th>Hasil</th></tr>';
+    mine.forEach(function(r){ h += '<tr><td>' + esc(r.game) + '</td><td>' + r.level + '</td><td>' + starsHTML(r.bintang) + '</td><td>' + esc(r.hasil) + '</td></tr>'; });
+    h += '</table>';
+  }
+  app.innerHTML = h + '</div>';
+  document.getElementById('bk').onclick = render;
+}
+function downloadCSV(){
+  var cols = ['waktu','nama','game','tema','level','bintang','hasil','detail'];
+  var rows = [cols.join(',')].concat(log.map(function(r){
+    return cols.map(function(c){ var v = String(r[c] == null ? '' : r[c]); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g,'""') + '"'; }).join(',');
+  }));
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + rows.join('\n')], {type:'text/csv'}));
+  a.download = 'rekap-game-prakom.csv'; document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ---------- main game dalam iframe ---------- */
+function open(k){
+  current = gameByKey(k);
+  /* progres bawaan tiap game (localStorage) dikosongkan agar tidak bocor antar pemain */
+  try{ Object.keys(localStorage).forEach(function(x){ if (/^best_|^kabel_utp_best$/.test(x)) localStorage.removeItem(x); }); }catch(e){}
+  document.getElementById('ptitle').textContent = current.emoji + ' ' + current.title;
+  frame.srcdoc = current.html.replace(/<\/body>/i, function(m){ return HOOK + m; });
+  app.classList.add('hidden'); play.classList.remove('hidden');
+}
+document.getElementById('pback').onclick = function(){
+  play.classList.add('hidden'); app.classList.remove('hidden'); frame.srcdoc = ''; current = null; render();
+};
+
+try{ player = sessionStorage.getItem('pk_player') || null; }catch(e){}
+render(); flush();
+</script>
+</body>
+</html>

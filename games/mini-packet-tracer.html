@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mini Packet Tracer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#FFF9F3; --card:#FFFFFF; --ink:#182255; --muted:#566086;
+  --accent:#F79039; --accent-2:#FEBD26;
+  --peach:#FCDDC2; --peach-2:#FBCCA4; --line:#F3D3B6;
+  --ok:#14805A; --ok-bg:#DDF4EA; --bad:#C23A3A; --bad-bg:#FBE1E1;
+  --term:#101636; --term-ink:#D9F7E8;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121731; --card:#1B2347; --ink:#F4EFE8; --muted:#AAB1D3;
+    --peach:#2A3263; --peach-2:#36407A; --line:#3A4580;
+    --ok:#4CD6A0; --ok-bg:#12382C; --bad:#FF8A8A; --bad-bg:#44202A;
+    --term:#0A0E24;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121731; --card:#1B2347; --ink:#F4EFE8; --muted:#AAB1D3;
+  --peach:#2A3263; --peach-2:#36407A; --line:#3A4580;
+  --ok:#4CD6A0; --ok-bg:#12382C; --bad:#FF8A8A; --bad-bg:#44202A;
+  --term:#0A0E24;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:Arial,"Helvetica Neue",sans-serif;font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+h1,h2,h3{font-family:Montserrat,Arial,sans-serif;margin:0;line-height:1.2}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent-2);outline-offset:2px}
+.app{max-width:720px;margin:0 auto;padding:16px 14px 28px}
+
+/* menu */
+.hero{background:var(--accent);color:#fff;border-radius:22px;padding:22px 20px 20px;position:relative;overflow:hidden}
+.hero h1{font-size:clamp(26px,7vw,34px);font-weight:800;color:#fff;padding-right:84px}
+.hero p{margin:8px 0 0;color:#FFF3E6;padding-right:84px}
+.hero .decor{position:absolute;right:14px;top:14px;font-size:58px;line-height:1;transform:rotate(-6deg)}
+.levels{display:grid;gap:12px;margin-top:16px}
+.lvl{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;text-align:left;
+  background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px 16px;width:100%}
+.lvl:hover{border-color:var(--accent)}
+.lvl .no{width:46px;height:46px;border-radius:50%;background:var(--peach);display:grid;place-items:center;
+  font-family:Montserrat,Arial,sans-serif;font-weight:800;font-size:20px}
+.lvl h2{font-size:17px}
+.lvl p{margin:3px 0 0;color:var(--muted);font-size:14px}
+.stars{font-size:20px;letter-spacing:2px;color:var(--accent-2);white-space:nowrap}
+.stars .off{color:var(--line)}
+.foot{margin-top:18px;color:var(--muted);font-size:13px}
+
+/* bar */
+.bar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.back{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:8px 12px;font-weight:700}
+.bar h2{font-size:18px;flex:1}
+.chip{background:var(--peach);border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;white-space:nowrap}
+.chip.warn{background:var(--bad-bg);color:var(--bad)}
+.chip.good{background:var(--ok-bg);color:var(--ok)}
+.status{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.task{background:var(--peach);border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:15.5px}
+.hint{margin:0 0 12px;color:var(--muted);font-size:14.5px}
+.btn{border:0;border-radius:14px;padding:12px 18px;font-weight:700;background:var(--accent);color:#fff;flex:1}
+.btn.alt{background:var(--card);color:var(--ink);border:2px solid var(--line)}
+.btn.dark{background:var(--ink);color:var(--bg)}
+.btn:disabled{opacity:.5;cursor:default}
+.row-btns{display:flex;gap:10px;margin-top:14px}
+.msg{margin-top:12px;min-height:22px;font-weight:700;text-align:center}
+
+/* quiz */
+.qcard{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px}
+.qcard h3{font-size:17px;margin-bottom:6px}
+.ctx{margin:0 0 10px;font-size:15px}
+.clue{background:var(--peach);border-radius:12px;padding:10px 12px;margin:0 0 10px;font-size:14.5px}
+.clue b{display:block;margin-bottom:2px}
+.opts{display:grid;gap:10px;margin-top:12px}
+.opts.cols2{grid-template-columns:1fr 1fr}
+.opt{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:12px 14px;text-align:left;font-weight:700;font-size:15px}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.right{background:var(--ok-bg);border-color:var(--ok)}
+.opt.wrong{background:var(--bad-bg);border-color:var(--bad)}
+.fb{margin-top:14px;border-radius:14px;padding:12px 14px;font-size:14.5px}
+.fb.ok{background:var(--ok-bg)} .fb.bad{background:var(--bad-bg)}
+.fb b{display:block;margin-bottom:2px}
+
+/* sorter */
+.spool{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:6px 0 8px;margin-bottom:8px}
+.spool .box{border:2px dashed var(--line);border-radius:16px;background:var(--card);padding:8px;display:flex;flex-wrap:wrap;gap:6px;
+  justify-content:center;max-height:34vh;overflow:auto;min-height:56px;align-items:center}
+.scard{border:2px solid var(--peach-2);background:var(--peach);border-radius:12px;padding:7px 11px;font-weight:700;font-size:14px;text-align:left}
+.scard.sel{outline:3px solid var(--accent-2);transform:translateY(-2px);border-color:var(--accent)}
+.scard.ok{background:var(--ok-bg);border-color:var(--ok)}
+.scard.bad{background:var(--bad-bg);border-color:var(--bad)}
+.spool .empty{color:var(--muted);font-size:14px}
+.bin{border:2px solid var(--line);background:var(--card);border-radius:16px;padding:9px 11px 10px;margin-bottom:8px;cursor:pointer}
+.bin.target{border-color:var(--accent);background:var(--peach)}
+.bin .bl{font-weight:800;font-size:14.5px}
+.bin .bs{font-weight:400;color:var(--muted);font-size:12.5px;margin-left:6px}
+.bin .items{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;min-height:6px}
+
+/* order */
+.slots{display:grid;gap:8px}
+.slot{display:flex;gap:10px;align-items:stretch;min-height:46px}
+.slot .n{flex:0 0 34px;border-radius:10px;background:var(--peach);display:grid;place-items:center;font-weight:800}
+.slot .c{flex:1;border:2px dashed var(--line);border-radius:12px;padding:8px 12px;display:flex;align-items:center;text-align:left;
+  background:var(--card);font-size:14.5px;min-height:46px}
+.slot .c.filled{border-style:solid;border-color:var(--peach-2);background:var(--peach);font-weight:700;cursor:pointer}
+.slot .c.locked{background:var(--card);border-color:var(--ink);cursor:default}
+.slot .c.ok{background:var(--ok-bg);border-color:var(--ok)}
+.slot .c.bad{background:var(--bad-bg);border-color:var(--bad)}
+.slot .lab{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.opool{margin-top:12px;display:grid;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:16px;background:var(--card)}
+.opool.g2{grid-template-columns:1fr 1fr}
+.ocard{border:2px solid var(--peach-2);background:var(--peach);border-radius:12px;padding:9px 12px;font-weight:700;font-size:14px;text-align:left}
+.opool .empty{color:var(--muted);font-size:14px;grid-column:1/-1;text-align:center}
+.reveal{margin-top:12px;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px 14px}
+.reveal ol{margin:6px 0 0;padding-left:20px}
+.reveal li{margin-bottom:6px;font-size:14.5px}
+
+/* result */
+.result{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:24px 18px;text-align:center}
+.result .stars{font-size:46px;margin:6px 0 4px}
+.result h2{font-size:22px}
+.result p{color:var(--muted);margin:6px auto 0;max-width:44ch}
+.stat{display:flex;justify-content:center;gap:10px;margin:14px 0 4px;flex-wrap:wrap}
+.stat span{background:var(--peach);border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px}
+.result .row-btns{flex-wrap:wrap}
+.result .row-btns .btn{min-width:130px}
+.extra{margin-top:14px;text-align:left}
+.note{margin-top:14px;font-size:12.5px;color:var(--muted);text-align:left}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.net{display:grid;gap:10px;margin-bottom:12px}
+.seg{border:2px solid var(--line);border-radius:16px;background:var(--card);padding:10px}
+.seg>.sl{font-weight:800;font-size:14.5px;margin-bottom:8px}
+.seg>.sl span{font-weight:400;color:var(--muted);font-size:12.5px;margin-left:6px}
+.devs{display:grid;gap:8px}
+.dev{border:2px solid var(--peach-2);background:var(--peach);border-radius:12px;padding:8px 10px}
+.dev h4{margin:0 0 6px;font-family:Montserrat,Arial,sans-serif;font-size:14px}
+.f{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.f label{display:block;font-size:11.5px;color:var(--muted);font-weight:700;margin-bottom:2px}
+.f .full{grid-column:1/-1}
+.f input{width:100%;font:inherit;font-size:15px;padding:7px 9px;border:2px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink)}
+.f input::placeholder{color:var(--muted);opacity:.6}
+.link{height:14px;display:flex;justify-content:center}
+.link i{display:block;width:4px;height:100%;background:var(--ink);opacity:.5;border-radius:2px}
+.rt{border:2px solid var(--ink);border-radius:16px;background:var(--card);padding:10px}
+.rt h4{margin:0 0 8px;font-family:Montserrat,Arial,sans-serif;font-size:14.5px}
+.ifs{display:grid;gap:8px}
+.ifr{background:var(--peach);border-radius:12px;padding:8px 10px}
+.ifr b{display:block;font-size:13px;margin-bottom:5px}
+.panel{border:2px solid var(--line);background:var(--card);border-radius:16px;padding:12px}
+.pr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pr label{display:block;font-size:11.5px;color:var(--muted);font-weight:700;margin-bottom:2px}
+.pr select{width:100%;font:inherit;padding:8px;border:2px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink)}
+.pb{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.pb .btn{flex:1;min-width:110px;padding:10px 12px}
+.term{margin-top:10px;background:var(--term);color:var(--term-ink);border-radius:12px;padding:10px 12px;font-family:"Courier New",monospace;font-size:12.5px;
+  line-height:1.4;max-height:240px;min-height:90px;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.term .ok{color:#6EF0B4} .term .er{color:#FF9B9B} .term .hn{color:#FFD97A}
+.goals{display:grid;gap:6px;margin-bottom:12px}
+.goal{display:flex;gap:8px;align-items:center;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:8px 12px;font-size:14.5px}
+.goal .mk{flex:0 0 22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;background:var(--peach)}
+.goal.done{background:var(--ok-bg);border-color:var(--ok)}
+.goal.done .mk{background:var(--ok);color:#fff}
+.plan{font-size:13.5px;color:var(--muted);margin:-4px 0 10px}
+
+.cluebox{display:grid;gap:8px;margin-bottom:12px}
+.clue1{background:var(--peach);border-radius:12px;padding:10px 12px;font-size:14.5px}
+.clue1 b{display:block;margin-bottom:2px}
+#bh{flex:none;width:100%}
+
+</style>
+</head>
+<body>
+<div class="app" id="view"></div>
+<script>
+/* ===================== util umum ===================== */
+var GAME = null;
+var view = document.getElementById('view');
+var timerId = null;
+function clearTimer(){ if (timerId){ clearInterval(timerId); timerId = null; } }
+function shuffle(a){
+  a = a.slice();
+  for (var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function eqArr(a,b){ if (a.length !== b.length) return false; for (var i=0;i<a.length;i++){ if (a[i]!==b[i]) return false; } return true; }
+
+function loadBest(){
+  try { var r = localStorage.getItem('best_' + GAME.key); if (r) return JSON.parse(r); } catch(e){}
+  return {1:0,2:0,3:0};
+}
+function saveBest(level, stars){
+  try {
+    var b = loadBest();
+    if (stars > (b[level]||0)) { b[level] = stars; localStorage.setItem('best_' + GAME.key, JSON.stringify(b)); }
+  } catch(e){}
+}
+function starsHTML(n){
+  var s = '<span class="stars" aria-label="' + n + ' dari 3 bintang">';
+  for (var i=1;i<=3;i++) s += i<=n ? '★' : '<span class="off">★</span>';
+  return s + '</span>';
+}
+function barHTML(title, chip){
+  return '<div class="bar"><button class="back" id="bk">&larr; Menu</button><h2>' + title + '</h2>' + (chip||'') + '</div>';
+}
+function bindBack(){ var b = document.getElementById('bk'); if (b) b.onclick = showMenu; }
+function levelTitle(n){ return 'Level ' + n + ': ' + ['Mudah','Sedang','Sulit'][n-1]; }
+
+/* ===================== menu ===================== */
+function showMenu(){
+  clearTimer();
+  var best = loadBest(), h = '';
+  h += '<div class="hero"><div class="decor" aria-hidden="true">' + GAME.emoji + '</div><h1>' + GAME.title + '</h1><p>' + GAME.intro + '</p></div><div class="levels">';
+  GAME.levels.forEach(function(l, i){
+    h += '<button class="lvl" data-l="' + (i+1) + '"><span class="no">' + (i+1) + '</span><span><h2>' + l[0] + '</h2><p>' + l[1] + '</p></span>' + starsHTML(best[i+1]||0) + '</button>';
+  });
+  h += '</div><p class="foot">Semua level terbuka. Mulai dari mana saja. ' + GAME.foot + '</p>';
+  view.innerHTML = h;
+  Array.prototype.forEach.call(view.querySelectorAll('.lvl'), function(b){
+    b.addEventListener('click', function(){ GAME.start(+b.dataset.l); });
+  });
+}
+
+/* ===================== hasil ===================== */
+function showResult(r){
+  clearTimer();
+  var h = '<div class="result">' + starsHTML(r.stars) + '<h2>' + r.title + '</h2><p>' + r.text + '</p>';
+  if (r.stats && r.stats.length) h += '<div class="stat">' + r.stats.map(function(s){ return '<span>' + s + '</span>'; }).join('') + '</div>';
+  if (r.extra) h += '<div class="extra">' + r.extra + '</div>';
+  h += '<div class="row-btns"><button class="btn alt" id="rm">Menu</button><button class="btn" id="ra">Main lagi</button>' +
+       (r.level < 3 && r.stars > 0 ? '<button class="btn dark" id="rn">Level ' + (r.level+1) + '</button>' : '') + '</div>';
+  if (r.note) h += '<p class="note">' + r.note + '</p>';
+  view.innerHTML = h + '</div>';
+  document.getElementById('rm').onclick = showMenu;
+  document.getElementById('ra').onclick = function(){ GAME.start(r.level); };
+  var rn = document.getElementById('rn');
+  if (rn) rn.onclick = function(){ GAME.start(r.level + 1); };
+}
+function starsBy(v, hi, mid, lo){ return v >= hi ? 3 : (v >= mid ? 2 : (v >= lo ? 1 : 0)); }
+function starsLow(v, a, b){ return v <= a ? 3 : (v <= b ? 2 : 1); }   /* makin kecil makin baik */
+
+/* ===================== komponen: kuis pilihan ===================== */
+/* cfg: {level,title,qs:[{ctx,clue,cluelabel,prompt,opts:[{k,t,fb}],ans,why}],perQ,cols,finish(score,total)} */
+function runQuiz(cfg){
+  clearTimer();
+  var qs = cfg.qs, idx = 0, score = 0, answered = false, left = 0;
+  function render(){
+    clearTimer(); answered = false;
+    var q = qs[idx];
+    var h = barHTML(cfg.title, '<span class="chip">Soal ' + (idx+1) + '/' + qs.length + '</span>');
+    h += '<div class="status"><span class="chip">Skor: ' + score + '</span>' + (cfg.perQ ? '<span class="chip" id="tchip">' + cfg.perQ + ' dtk</span>' : '') + '</div>';
+    h += '<div class="qcard">';
+    if (q.ctx) h += '<p class="ctx">' + q.ctx + '</p>';
+    if (q.clue) h += '<div class="clue"><b>' + (q.cluelabel || 'Temuan') + '</b>' + q.clue + '</div>';
+    h += '<h3>' + q.prompt + '</h3><div class="opts' + (cfg.cols === 2 ? ' cols2' : '') + '">';
+    q.opts.forEach(function(o){ h += '<button class="opt" data-k="' + o.k + '">' + o.t + '</button>'; });
+    h += '</div><div id="fb"></div></div>';
+    view.innerHTML = h;
+    bindBack();
+    Array.prototype.forEach.call(view.querySelectorAll('.opt'), function(b){
+      b.addEventListener('click', function(){ answer(b.dataset.k); });
+    });
+    if (cfg.perQ) {
+      left = cfg.perQ;
+      timerId = setInterval(function(){
+        left--;
+        var c = document.getElementById('tchip');
+        if (c) { c.textContent = left + ' dtk'; c.className = 'chip' + (left <= 5 ? ' warn' : ''); }
+        if (left <= 0) { clearTimer(); answer(null); }
+      }, 1000);
+    }
+  }
+  function answer(k){
+    if (answered) return;
+    answered = true; clearTimer();
+    var q = qs[idx];
+    var right = (k !== null && String(k) === String(q.ans));
+    if (right) score++;
+    var chosen = null, correct = null;
+    q.opts.forEach(function(o){ if (String(o.k) === String(k)) chosen = o; if (String(o.k) === String(q.ans)) correct = o; });
+    Array.prototype.forEach.call(view.querySelectorAll('.opt'), function(b){
+      b.disabled = true;
+      if (String(b.dataset.k) === String(q.ans)) b.classList.add('right');
+      else if (k !== null && b.dataset.k === String(k)) b.classList.add('wrong');
+    });
+    var txt = '';
+    if (k === null) txt += 'Waktu habis. ';
+    if (!right && chosen && chosen.fb) txt += chosen.fb + ' ';
+    if (!right && correct) txt += 'Jawaban tepat: ' + correct.t + '. ';
+    if (right && correct && correct.fb) txt += correct.fb + ' ';
+    if (q.why) txt += q.why;
+    var last = idx === qs.length - 1;
+    document.getElementById('fb').innerHTML =
+      '<div class="fb ' + (right ? 'ok' : 'bad') + '"><b>' + (right ? 'Benar' : (k === null ? 'Waktu habis' : 'Belum tepat')) + '</b>' + txt + '</div>' +
+      '<div class="row-btns"><button class="btn" id="nx">' + (last ? 'Lihat hasil' : 'Lanjut') + '</button></div>';
+    var nx = document.getElementById('nx');
+    nx.onclick = function(){ if (last) cfg.finish(score, qs.length); else { idx++; render(); } };
+    nx.focus();
+  }
+  render();
+}
+
+/* ===================== komponen: urutkan ===================== */
+/* cfg: {level,title,task,items:[{id,t}] (urutan benar),labels,locked:[idx],feedback:'live'|'marks'|'count',timer,g2,reveal,
+         onDone(res),onTimeout(res)} */
+function runOrder(cfg){
+  clearTimer();
+  var items = cfg.items, n = items.length, byId = {};
+  items.forEach(function(it){ byId[it.id] = it; });
+  var st = {slots:[], locked:{}, done:false, mistakes:0, checks:0, left:cfg.timer || 0, msg:'', marks:null};
+  for (var i=0;i<n;i++) st.slots.push(null);
+  (cfg.locked || []).forEach(function(i){ st.slots[i] = items[i].id; st.locked[i] = true; });
+  var poolOrder = shuffle(items.map(function(it){ return it.id; })).filter(function(id){ return st.slots.indexOf(id) < 0; });
+  var fbk = cfg.feedback;
+
+  view.innerHTML = barHTML(cfg.title, '') + '<div id="stage"></div>';
+  bindBack();
+  var stage = document.getElementById('stage');
+
+  function chipHTML(){
+    if (cfg.timer) return '<span class="chip" id="tchip">' + st.left + ' dtk</span>';
+    if (fbk === 'live') return '<span class="chip" id="mchip">Salah: ' + st.mistakes + '</span>';
+    return '<span class="chip" id="mchip">Periksa: ' + st.checks + 'x</span>';
+  }
+  function draw(){
+    var h = '<div class="status">' + chipHTML() + '</div><div class="task">' + cfg.task + '</div><div class="slots" id="slots">';
+    for (var i=0;i<n;i++){
+      var id = st.slots[i], cls = 'c';
+      if (id) {
+        cls += st.locked[i] ? ' locked' : ' filled';
+        if (!st.locked[i]) {
+          if (fbk === 'live') cls += (id === items[i].id ? ' ok' : ' bad');
+          else if (st.marks) cls += (st.marks[i] ? ' ok' : ' bad');
+        }
+      }
+      h += '<div class="slot" data-i="' + i + '"><div class="n">' + (i+1) + '</div><div class="' + cls + '">';
+      if (id) h += '<span>' + (cfg.labels && cfg.showLabels ? '<span class="lab">' + cfg.labels[i] + '</span>' : '') + esc(byId[id].t) + (st.locked[i] ? ' <span class="lab" style="display:inline">(terkunci)</span>' : '') + '</span>';
+      else h += '<span class="lab" style="color:var(--muted)">Tap kartu di bawah</span>';
+      h += '</div></div>';
+    }
+    h += '</div><div class="opool' + (cfg.g2 ? ' g2' : '') + '" id="opool">';
+    var inPool = poolOrder.filter(function(id){ return st.slots.indexOf(id) < 0; });
+    if (!inPool.length) h += '<span class="empty">Semua kartu sudah dipasang</span>';
+    inPool.forEach(function(id){ h += '<button class="ocard" data-id="' + id + '">' + esc(byId[id].t) + '</button>'; });
+    h += '</div><div class="row-btns"><button class="btn alt" id="rs">Ulangi</button>' +
+         (fbk !== 'live' ? '<button class="btn" id="ck">Periksa</button>' : '') + '</div><div class="msg" id="msg"></div>';
+    stage.innerHTML = h;
+    document.getElementById('msg').textContent = st.msg;
+    document.getElementById('rs').onclick = function(){
+      if (st.done) return;
+      for (var i=0;i<n;i++) if (!st.locked[i]) st.slots[i] = null;
+      st.msg = ''; st.marks = null; draw();
+    };
+    var ck = document.getElementById('ck');
+    if (ck) ck.onclick = check;
+  }
+  function firstEmpty(){ for (var i=0;i<n;i++) if (st.slots[i] === null) return i; return -1; }
+  function allCorrect(){ for (var i=0;i<n;i++) if (st.slots[i] !== items[i].id) return false; return true; }
+
+  stage.addEventListener('click', function(e){
+    if (st.done) return;
+    var oc = e.target.closest('.ocard');
+    if (oc) {
+      var i = firstEmpty();
+      if (i < 0) return;
+      st.slots[i] = oc.dataset.id; st.msg = ''; st.marks = null;
+      if (fbk === 'live' && oc.dataset.id !== items[i].id) st.mistakes++;
+      draw();
+      if (fbk === 'live') {
+        if (allCorrect()) finish();
+        else if (firstEmpty() < 0) { st.msg = 'Tap kartu yang merah untuk mengembalikannya, lalu coba lagi.'; draw(); }
+      }
+      return;
+    }
+    var sl = e.target.closest('.slot');
+    if (sl) {
+      var j = +sl.dataset.i;
+      if (st.slots[j] && !st.locked[j]) { st.slots[j] = null; st.msg = ''; st.marks = null; draw(); }
+    }
+  });
+
+  function check(){
+    if (st.done) return;
+    if (firstEmpty() >= 0) { st.msg = 'Isi semua posisi dulu.'; draw(); return; }
+    st.checks++;
+    var ok = 0, marks = [];
+    for (var i=0;i<n;i++){ var m = st.slots[i] === items[i].id; marks.push(m); if (m) ok++; }
+    if (ok === n) { finish(); return; }
+    st.marks = fbk === 'marks' ? marks : null;
+    st.msg = ok + ' dari ' + n + ' posisi sudah benar. Coba lagi.';
+    draw();
+  }
+  function finish(){
+    if (st.done) return;
+    st.done = true; clearTimer();
+    var res = {mistakes:st.mistakes, checks:st.checks, left:st.left, ok:true};
+    if (cfg.reveal) {
+      var h = '<div class="reveal"><b>Urutan yang benar</b><ol>';
+      items.forEach(function(it, i){ h += '<li>' + (cfg.labels ? '<b>' + cfg.labels[i] + ':</b> ' : '') + esc(it.t) + '</li>'; });
+      h += '</ol></div><div class="row-btns"><button class="btn" id="go">Lanjut</button></div>';
+      stage.innerHTML = '<div class="status"><span class="chip good">Urutan benar</span></div>' + h;
+      document.getElementById('go').onclick = function(){ cfg.onDone(res); };
+    } else cfg.onDone(res);
+  }
+  if (cfg.timer) {
+    timerId = setInterval(function(){
+      if (st.done) return;
+      st.left--;
+      var c = document.getElementById('tchip');
+      if (c) { c.textContent = st.left + ' dtk'; c.className = 'chip' + (st.left <= 15 ? ' warn' : ''); }
+      if (st.left <= 0) { st.left = 0; st.done = true; clearTimer(); if (cfg.onTimeout) cfg.onTimeout({checks:st.checks}); }
+    }, 1000);
+  }
+  draw();
+}
+
+/* ===================== komponen: sortir ke kotak ===================== */
+/* cfg: {level,title,task,bins:[{id,label,short,sub}],cards:[{id,t,bin}],hideNames,feedback:'live'|'check',onDone(res)} */
+function runSorter(cfg){
+  clearTimer();
+  var st = {place:{}, sel:null, mistakes:0, checks:0, done:false, msg:'', marks:null};
+  var cards = shuffle(cfg.cards), byId = {};
+  cfg.cards.forEach(function(c){ byId[c.id] = c; });
+  var live = cfg.feedback === 'live';
+  view.innerHTML = barHTML(cfg.title, '') + '<div id="stage"></div>';
+  bindBack();
+  var stage = document.getElementById('stage');
+
+  function draw(){
+    var h = '<div class="status"><span class="chip" id="mchip">' + (live ? 'Salah: ' + st.mistakes : 'Periksa: ' + st.checks + 'x') + '</span></div>';
+    h += '<div class="task">' + cfg.task + '</div>';
+    h += '<div class="spool"><div class="box" id="pool">';
+    var rest = cards.filter(function(c){ return !st.place[c.id]; });
+    if (!rest.length) h += '<span class="empty">Semua kartu sudah dipasang</span>';
+    rest.forEach(function(c){ h += '<button class="scard' + (st.sel === c.id ? ' sel' : '') + '" data-id="' + c.id + '">' + esc(c.t) + '</button>'; });
+    h += '</div></div><div id="bins">';
+    cfg.bins.forEach(function(b){
+      h += '<div class="bin' + (st.sel ? ' target' : '') + '" data-bin="' + b.id + '"><div class="bl">' + (cfg.hideNames ? b.short : b.label) +
+           (!cfg.hideNames && b.sub ? '<span class="bs">' + b.sub + '</span>' : '') + '</div><div class="items">';
+      cards.filter(function(c){ return st.place[c.id] === b.id; }).forEach(function(c){
+        var cls = 'scard';
+        if (live) cls += (c.bin === b.id ? ' ok' : ' bad');
+        else if (st.marks) cls += (c.bin === b.id ? ' ok' : ' bad');
+        h += '<button class="' + cls + '" data-placed="' + c.id + '">' + esc(c.t) + '</button>';
+      });
+      h += '</div></div>';
+    });
+    h += '</div>' + (live ? '' : '<div class="row-btns"><button class="btn alt" id="rs">Ulangi</button><button class="btn" id="ck">Periksa</button></div>') +
+         '<div class="msg" id="msg"></div>';
+    stage.innerHTML = h;
+    document.getElementById('msg').textContent = st.msg;
+    var rs = document.getElementById('rs');
+    if (rs) rs.onclick = function(){ if (st.done) return; st.place = {}; st.sel = null; st.msg = ''; st.marks = null; draw(); };
+    var ck = document.getElementById('ck');
+    if (ck) ck.onclick = check;
+  }
+  function allPlaced(){ return cards.every(function(c){ return st.place[c.id]; }); }
+  function allRight(){ return cards.every(function(c){ return st.place[c.id] === c.bin; }); }
+
+  stage.addEventListener('click', function(e){
+    if (st.done) return;
+    var c = e.target.closest('#pool [data-id]');
+    if (c) { st.sel = (st.sel === c.dataset.id) ? null : c.dataset.id; draw(); return; }
+    var bin = e.target.closest('[data-bin]');
+    var pc = e.target.closest('[data-placed]');
+    if (pc && !st.sel) { delete st.place[pc.dataset.placed]; st.msg = ''; st.marks = null; draw(); return; }
+    if (bin && st.sel) {
+      var card = byId[st.sel];
+      st.place[card.id] = bin.dataset.bin;
+      if (live && card.bin !== bin.dataset.bin) st.mistakes++;
+      st.sel = null; st.msg = ''; st.marks = null;
+      draw();
+      if (live) {
+        if (allRight()) finish();
+        else if (allPlaced()) { st.msg = 'Tap kartu yang merah untuk memindahkannya, lalu coba lagi.'; draw(); }
+      }
+    }
+  });
+  function check(){
+    if (st.done) return;
+    if (!allPlaced()) { st.msg = 'Pasang semua kartu dulu.'; draw(); return; }
+    st.checks++;
+    var ok = cards.filter(function(c){ return st.place[c.id] === c.bin; }).length;
+    if (ok === cards.length) { finish(); return; }
+    st.marks = true;
+    st.msg = ok + ' dari ' + cards.length + ' kartu sudah di tempat yang benar.';
+    draw();
+  }
+  function finish(){
+    if (st.done) return;
+    st.done = true;
+    cfg.onDone({mistakes:st.mistakes, checks:st.checks});
+  }
+  draw();
+}
+
+/* ===================== Mini Packet Tracer ===================== */
+function ip2n(s){
+  s = String(s).trim();
+  if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(s)) return null;
+  var p = s.split('.').map(Number), n = 0;
+  for (var i=0;i<4;i++){ if (p[i] > 255) return null; n = n * 256 + p[i]; }
+  return n;
+}
+function maskOK(s){
+  var n = ip2n(s);
+  if (n === null) return false;
+  var b = n.toString(2); while (b.length < 32) b = '0' + b;
+  return /^1+0*$/.test(b);
+}
+function band(a, b){ var r = 0, m = 1; for (var i=0;i<32;i++){ if ((Math.floor(a / m) % 2) && (Math.floor(b / m) % 2)) r += m; m *= 2; } return r; }
+function net(ip, mask){ return band(ip2n(ip), ip2n(mask)); }
+function hostOK(ip, mask){
+  var a = ip2n(ip), m = ip2n(mask), inv = 4294967295 - m, host = a - band(a, m);
+  return host !== 0 && host !== inv;
+}
+function okAddr(ip, mask){ return ip2n(ip) !== null && maskOK(mask); }
+
+/* simulator: dev = {id,name,seg,ip,mask,gw}; router = {ifs:[{seg,ip,mask}]} */
+function simulate(S, from, to){
+  var src = S.dev[from], dst = S.dev[to], R = S.router;
+  function fail(code, kind, via){ return {ok:false, code:code, kind:kind || 'timeout', via:via}; }
+  if (!okAddr(src.ip, src.mask)) return fail('SRC_BAD', 'unreach', src.ip);
+  if (!okAddr(dst.ip, dst.mask)) return fail('DST_BAD');
+  if (!hostOK(src.ip, src.mask)) return fail('HOSTADDR', 'unreach', src.ip);
+  if (!hostOK(dst.ip, dst.mask)) return fail('HOSTADDR');
+  var all = [];
+  Object.keys(S.dev).forEach(function(k){ all.push({n:S.dev[k].name, seg:S.dev[k].seg, ip:S.dev[k].ip}); });
+  if (R) R.ifs.forEach(function(f, i){ all.push({n:'Router', seg:f.seg, ip:f.ip}); });
+  function conflict(d){
+    return all.some(function(o){ return o.seg === d.seg && o.n !== d.name && ip2n(o.ip) !== null && ip2n(d.ip) !== null && ip2n(o.ip) === ip2n(d.ip); });
+  }
+  if (conflict(src) || conflict(dst)) return fail('CONFLICT');
+  var sameNet = net(src.ip, src.mask) === band(ip2n(dst.ip), ip2n(src.mask));
+  if (sameNet) {
+    if (src.seg !== dst.seg) return fail('SAMENET_DIFFSEG');
+    if (net(dst.ip, dst.mask) !== band(ip2n(src.ip), ip2n(dst.mask))) return fail('REV_MASK');
+    return {ok:true, hops:[{ip:dst.ip}], ttl:128};
+  }
+  /* beda jaringan: perlu gateway */
+  if (ip2n(src.gw) === null || !maskOK(src.mask) || net(src.gw, src.mask) !== net(src.ip, src.mask)) return fail('NO_GW', 'unreach', src.ip);
+  if (!R) return fail('NO_GW', 'unreach', src.ip);
+  var fi = null;
+  R.ifs.forEach(function(f){ if (f.seg === src.seg) fi = f; });
+  if (!fi || !okAddr(fi.ip, fi.mask) || ip2n(fi.ip) !== ip2n(src.gw)) return fail('GW_MISMATCH');
+  if (band(ip2n(src.ip), ip2n(fi.mask)) !== net(fi.ip, fi.mask)) return fail('ROUTER_MASK');
+  var ti = null;
+  R.ifs.forEach(function(f){ if (f.seg === dst.seg) ti = f; });
+  if (!ti || !okAddr(ti.ip, ti.mask)) return fail('ROUTER_IF_OFF', 'unreach', fi.ip);
+  if (band(ip2n(dst.ip), ip2n(ti.mask)) !== net(ti.ip, ti.mask)) return fail('NOROUTE', 'unreach', fi.ip);
+  if (band(ip2n(src.ip), ip2n(dst.mask)) === net(dst.ip, dst.mask)) return fail('DST_MASK_BAD', 'timeout', null, fi.ip);
+  if (ip2n(dst.gw) === null || net(dst.gw, dst.mask) !== net(dst.ip, dst.mask) || ip2n(dst.gw) !== ip2n(ti.ip)) return fail('DST_GW_BAD');
+  return {ok:true, hops:[{ip:fi.ip}, {ip:dst.ip}], ttl:127};
+}
+var HINTS = {
+  SRC_BAD:['IP atau subnet mask PC sumber belum diisi atau tidak valid.','Layer 3 (Network)'],
+  DST_BAD:['IP atau subnet mask PC tujuan belum diisi atau tidak valid.','Layer 3 (Network)'],
+  HOSTADDR:['Alamat jaringan dan alamat broadcast tidak boleh dipakai sebagai IP host.','Layer 3 (Network)'],
+  CONFLICT:['Ada dua perangkat dengan IP yang sama di jaringan yang sama (IP bentrok).','Layer 3 (Network)'],
+  SAMENET_DIFFSEG:['PC sumber mengira tujuan satu jaringan, padahal tujuan ada di jaringan lain, sehingga tidak ada yang menjawab. Periksa IP dan subnet mask.','Layer 2-3 (Data Link, Network)'],
+  REV_MASK:['Balasan tidak kembali: subnet mask kedua PC tidak seragam.','Layer 3 (Network)'],
+  NO_GW:['Tujuan ada di jaringan lain, tetapi default gateway kosong atau tidak satu subnet dengan PC.','Layer 3 (Network)'],
+  GW_MISMATCH:['Default gateway tidak sama dengan IP router di jaringan ini, atau interface router belum diisi.','Layer 3 (Network)'],
+  ROUTER_MASK:['IP PC tidak berada di jaringan interface router. Periksa mask router dan IP PC.','Layer 3 (Network)'],
+  ROUTER_IF_OFF:['Interface router di sisi tujuan belum dikonfigurasi.','Layer 3 (Network)'],
+  NOROUTE:['Router tidak punya jaringan tujuan: IP tujuan tidak cocok dengan interface router di sisinya.','Layer 3 (Network)'],
+  DST_MASK_BAD:['Balasan tidak kembali: mask PC tujuan terlalu luas, ia mengira sumber ada di jaringan yang sama.','Layer 3 (Network)'],
+  DST_GW_BAD:['Paket sampai, tetapi balasan tidak bisa pulang: gateway PC tujuan kosong atau salah.','Layer 3 (Network)']
+};
+
+function termPing(S, from, to, showHint){
+  var r = simulate(S, from, to), d = S.dev[to], o = '';
+  o += '<span class="hn">C:\\&gt; ping ' + esc(d.ip || '?') + '   (dari ' + S.dev[from].name + ' ke ' + d.name + ')</span>\n';
+  o += 'Pinging ' + esc(d.ip || '?') + ' with 32 bytes of data:\n';
+  var i;
+  if (r.ok) {
+    for (i=0;i<4;i++) o += '<span class="ok">Reply from ' + esc(d.ip) + ': bytes=32 time&lt;1ms TTL=' + r.ttl + '</span>\n';
+    o += 'Ping statistics: Sent = 4, Received = 4, Lost = 0 (0% loss)\n';
+  } else {
+    for (i=0;i<4;i++) {
+      if (r.kind === 'unreach' && r.via) o += '<span class="er">Reply from ' + esc(r.via) + ': Destination host unreachable.</span>\n';
+      else if (r.kind === 'unreach') o += '<span class="er">Destination host unreachable.</span>\n';
+      else o += '<span class="er">Request timed out.</span>\n';
+    }
+    o += 'Ping statistics: Sent = 4, Received = 0, Lost = 4 (100% loss)\n';
+    if (showHint && HINTS[r.code]) {
+      var hh = HINTS[r.code][0];
+      if (S.level === 1 && r.code === 'NO_GW') hh = 'Kedua PC harus memakai jaringan yang sama (192.168.10.x dengan mask 255.255.255.0).';
+      o += '<span class="hn">Petunjuk: ' + hh + ' [' + HINTS[r.code][1] + ']</span>\n';
+    }
+  }
+  return {ok:r.ok, text:o};
+}
+function termTrace(S, from, to){
+  var r = simulate(S, from, to), d = S.dev[to], o = '';
+  o += '<span class="hn">C:\\&gt; tracert ' + esc(d.ip || '?') + '   (dari ' + S.dev[from].name + ' ke ' + d.name + ')</span>\n';
+  o += 'Tracing route to ' + esc(d.ip || '?') + ' over a maximum of 30 hops:\n';
+  if (r.ok) {
+    r.hops.forEach(function(h, i){ o += '  ' + (i+1) + '    &lt;1 ms    ' + esc(h.ip) + '\n'; });
+    o += 'Trace complete.\n';
+  } else {
+    var src = S.dev[from], R = S.router, reach = 0;
+    /* hop 1 (gateway) menjawab hanya jika paket sampai ke router */
+    if (['DST_MASK_BAD','DST_GW_BAD'].indexOf(r.code) >= 0 && R) {
+      var fi = null; R.ifs.forEach(function(f){ if (f.seg === src.seg) fi = f; });
+      if (fi) { o += '  1    &lt;1 ms    ' + esc(fi.ip) + '\n'; reach = 1; }
+    }
+    if (r.kind === 'unreach' && r.via) o += '  ' + (reach+1) + '    ' + esc(r.via) + '  reports: Destination host unreachable.\n';
+    else { for (var i=reach+1;i<=reach+3;i++) o += '  ' + i + '     *        *        *     Request timed out.\n'; }
+    o += 'Trace complete.\n';
+  }
+  return {ok:r.ok, text:o};
+}
+
+function startTracer(level){
+  clearTimer();
+  var S = {dev:{}, router:null, level:level}, goals = [], goalDone = {}, uses = 0, pings = 0, done = false, showHint = level < 3;
+  function D(id, name, seg, ip, mask, gw){ S.dev[id] = {id:id, name:name, seg:seg, ip:ip||'', mask:mask||'', gw:gw||''}; }
+  var task, plan = '', segs;
+  if (level === 1) {
+    D('pc1','PC1','A'); D('pc2','PC2','A');
+    segs = [{seg:'A', label:'Jaringan A', sub:'lewat Switch', devs:['pc1','pc2']}];
+    goals = [['pc1','pc2'],['pc2','pc1']];
+    task = 'Isi IP dan subnet mask di PC1 dan PC2 supaya keduanya saling ping.';
+    plan = 'Rencana alamat: jaringan 192.168.10.0, subnet mask 255.255.255.0. Beri IP host yang berbeda untuk tiap PC.';
+  } else if (level === 2) {
+    D('pc1','PC1','A'); D('pc2','PC2','A'); D('pc3','PC3','B');
+    S.router = {ifs:[{seg:'A', ip:'', mask:''},{seg:'B', ip:'', mask:''}]};
+    segs = [{seg:'A', label:'Jaringan A', sub:'lewat Switch A', devs:['pc1','pc2']}, {router:true}, {seg:'B', label:'Jaringan B', sub:'lewat Switch B', devs:['pc3']}];
+    goals = [['pc1','pc3'],['pc2','pc3'],['pc3','pc1']];
+    task = 'Isi IP, mask, dan gateway PC, serta IP interface router, supaya PC1 dan PC2 bisa ping ke PC3 dan sebaliknya.';
+    plan = 'Rencana alamat: Jaringan A 192.168.10.0/24, Jaringan B 192.168.20.0/24 (mask 255.255.255.0). Router memakai alamat .1 di tiap jaringan.';
+  } else {
+    D('pc1','PC1','A','192.168.10.10','255.255.255.0','192.168.10.1');
+    D('pc2','PC2','A','192.168.10.20','255.255.255.0','192.168.10.1');
+    D('pc3','PC3','B','192.168.20.10','255.255.255.0','192.168.20.1');
+    D('srv','Server','B','192.168.20.50','255.255.255.0','192.168.20.1');
+    S.router = {ifs:[{seg:'A', ip:'192.168.10.1', mask:'255.255.255.0'},{seg:'B', ip:'192.168.20.1', mask:'255.255.255.0'}]};
+    var targets = shuffle(['pc1','pc2','pc3','srv']).slice(0, 3);
+    targets.forEach(function(t){
+      if (t === 'pc1') S.dev.pc1.gw = '192.168.10.254';
+      else if (t === 'pc2') { if (Math.random() < .5) S.dev.pc2.mask = '255.255.0.0'; else S.dev.pc2.ip = '192.168.10.10'; }
+      else if (t === 'pc3') S.dev.pc3.ip = '192.168.2.10';
+      else S.dev.srv.gw = '';
+    });
+    segs = [{seg:'A', label:'Jaringan A', sub:'192.168.10.0/24', devs:['pc1','pc2']}, {router:true}, {seg:'B', label:'Jaringan B', sub:'192.168.20.0/24', devs:['pc3','srv']}];
+    goals = [['pc1','srv'],['pc2','srv'],['pc3','pc1'],['srv','pc2']];
+    task = 'Jaringan sudah terpasang, tetapi ada kesalahan konfigurasi. Cari dan perbaiki dengan ping dan traceroute sampai semua tujuan berhasil.';
+    plan = 'Rencana alamat: Jaringan A 192.168.10.0/24, Jaringan B 192.168.20.0/24, router memakai .1 di tiap jaringan.';
+  }
+
+  var CLUES = level === 1 ? [
+    'Dua PC bisa saling ping kalau IP-nya berada di jaringan yang sama: bagian jaringannya sama, hanya angka host yang berbeda. Subnet mask kedua PC juga harus sama.',
+    'Angka host (oktet terakhir) harus berbeda untuk tiap PC, dan jangan memakai 0 atau 255 karena itu alamat jaringan dan broadcast.',
+    'Contoh: PC1 memakai 192.168.10.10 dan PC2 memakai 192.168.10.20, keduanya dengan mask 255.255.255.0.'
+  ] : (level === 2 ? [
+    'Tiap PC butuh default gateway, yaitu IP router di sisi jaringannya sendiri. PC di Jaringan A memakai IP router sisi A, PC di Jaringan B memakai IP router sisi B.',
+    'Router: interface ke Jaringan A diisi 192.168.10.1 dan interface ke Jaringan B diisi 192.168.20.1, keduanya dengan mask 255.255.255.0.',
+    'Contoh PC1: IP 192.168.10.10, mask 255.255.255.0, gateway 192.168.10.1. Contoh PC3: IP 192.168.20.10, mask 255.255.255.0, gateway 192.168.20.1. PC2 mengikuti pola PC1.'
+  ] : []);
+  var hintsUsed = 0;
+  var devIds = Object.keys(S.dev);
+  function goalLabel(g){ return S.dev[g[0]].name + ' ke ' + S.dev[g[1]].name; }
+  function fieldsHTML(id){
+    var d = S.dev[id];
+    return '<div class="dev"><h4>' + d.name + '</h4><div class="f">' +
+      '<div class="full"><label>IP address</label><input data-d="' + id + '" data-f="ip" value="' + esc(d.ip) + '" inputmode="decimal" autocomplete="off" placeholder="' + (level === 1 ? '192.168.10.x' : '192.168.x.x') + '"></div>' +
+      '<div><label>Subnet mask</label><input data-d="' + id + '" data-f="mask" value="' + esc(d.mask) + '" inputmode="decimal" autocomplete="off" placeholder="255.255.255.0"></div>' +
+      (level === 1 ? '' : '<div><label>Default gateway</label><input data-d="' + id + '" data-f="gw" value="' + esc(d.gw) + '" inputmode="decimal" autocomplete="off" placeholder="192.168.x.1"></div>') +
+      '</div></div>';
+  }
+  function routerHTML(){
+    var h = '<div class="rt"><h4>Router</h4><div class="ifs">';
+    S.router.ifs.forEach(function(f, i){
+      h += '<div class="ifr"><b>Interface ke Jaringan ' + f.seg + '</b><div class="f">' +
+        '<div><label>IP address</label><input data-r="' + i + '" data-f="ip" value="' + esc(f.ip) + '" inputmode="decimal" autocomplete="off" placeholder="192.168.x.1"></div>' +
+        '<div><label>Subnet mask</label><input data-r="' + i + '" data-f="mask" value="' + esc(f.mask) + '" inputmode="decimal" autocomplete="off" placeholder="255.255.255.0"></div></div></div>';
+    });
+    return h + '</div></div>';
+  }
+
+  var h = barHTML(levelTitle(level), '') + '<div class="task">' + task + '</div><p class="plan">' + plan + '</p>' + (CLUES.length ? '<div class="cluebox" id="clues"></div>' : '') + '<div class="goals" id="goals"></div><div class="net">';
+  segs.forEach(function(s, i){
+    if (s.router) { h += '<div class="link"><i></i></div>' + routerHTML() + '<div class="link"><i></i></div>'; return; }
+    h += '<div class="seg"><div class="sl">' + s.label + '<span>' + s.sub + '</span></div><div class="devs">' + s.devs.map(fieldsHTML).join('') + '</div></div>';
+  });
+  h += '</div><div class="panel"><div class="pr"><div><label>Dari</label><select id="sf">' + devIds.map(function(id){ return '<option value="' + id + '">' + S.dev[id].name + '</option>'; }).join('') +
+       '</select></div><div><label>Ke</label><select id="st">' + devIds.map(function(id, i){ return '<option value="' + id + '"' + (i === 1 ? ' selected' : '') + '>' + S.dev[id].name + '</option>'; }).join('') + '</select></div></div>' +
+       '<div class="pb"><button class="btn" id="bp">Ping</button>' + (level === 3 ? '<button class="btn alt" id="bt">Traceroute</button><button class="btn dark" id="ba">Cek semua</button>' : '') +
+       '</div><div class="term" id="term" aria-live="polite">Pilih perangkat asal dan tujuan, lalu tap Ping.\n</div></div><div class="msg" id="msg"></div>';
+  view.innerHTML = '<div id="troot">' + h + '</div>';
+  bindBack();
+  var troot = document.getElementById('troot');
+
+  function drawClues(){
+    var box = document.getElementById('clues');
+    if (!box) return;
+    var h = '';
+    for (var i=0;i<hintsUsed;i++) h += '<div class="clue1"><b>Petunjuk ' + (i+1) + '</b>' + CLUES[i] + '</div>';
+    if (hintsUsed < CLUES.length) h += '<button class="btn alt" id="bh">Minta petunjuk (' + (CLUES.length - hintsUsed) + ' tersisa)</button>';
+    box.innerHTML = h;
+    var bh = document.getElementById('bh');
+    if (bh) bh.onclick = function(){ if (done) return; hintsUsed++; drawClues(); };
+  }
+  function drawGoals(){
+    document.getElementById('goals').innerHTML = goals.map(function(g, i){
+      var ok = goalDone[i];
+      return '<div class="goal' + (ok ? ' done' : '') + '"><span class="mk">' + (ok ? '✓' : '') + '</span>' + goalLabel(g) + '</div>';
+    }).join('');
+  }
+  function resetGoals(){ goalDone = {}; drawGoals(); }
+  function out(html){
+    var t = document.getElementById('term');
+    t.innerHTML += html + '\n'; t.scrollTop = t.scrollHeight;
+  }
+  function markGoals(from, to, ok){
+    goals.forEach(function(g, i){ if (g[0] === from && g[1] === to && ok) goalDone[i] = true; });
+    drawGoals();
+    if (goals.every(function(g, i){ return goalDone[i]; })) win();
+  }
+  troot.addEventListener('input', function(e){
+    var t = e.target;
+    if (!t.dataset || !t.dataset.f) return;
+    if (t.dataset.d) S.dev[t.dataset.d][t.dataset.f] = t.value;
+    else if (t.dataset.r !== undefined) S.router.ifs[+t.dataset.r][t.dataset.f] = t.value;
+    resetGoals();
+  });
+  function sel(){ return [document.getElementById('sf').value, document.getElementById('st').value]; }
+  document.getElementById('bp').onclick = function(){
+    if (done) return;
+    var s = sel();
+    if (s[0] === s[1]) { out('Pilih perangkat asal dan tujuan yang berbeda.'); return; }
+    uses++; pings++;
+    var r = termPing(S, s[0], s[1], showHint); out(r.text); markGoals(s[0], s[1], r.ok);
+  };
+  var bt = document.getElementById('bt');
+  if (bt) bt.onclick = function(){
+    if (done) return;
+    var s = sel();
+    if (s[0] === s[1]) { out('Pilih perangkat asal dan tujuan yang berbeda.'); return; }
+    uses++;
+    var r = termTrace(S, s[0], s[1]); out(r.text); markGoals(s[0], s[1], r.ok);
+  };
+  var ba = document.getElementById('ba');
+  if (ba) ba.onclick = function(){
+    if (done) return;
+    uses++;
+    goals.forEach(function(g){ var r = termPing(S, g[0], g[1], false); out(r.text); markGoals(g[0], g[1], r.ok); });
+  };
+
+  function win(){
+    if (done) return;
+    done = true;
+    var s = level === 1 ? starsLow(uses, 4, 7) : (level === 2 ? starsLow(uses, 6, 12) : starsLow(uses, 12, 22));
+    saveBest(level, s);
+    var text = level === 1 ? 'Dua PC sudah saling terhubung dalam satu jaringan.' :
+               (level === 2 ? 'Dua jaringan sudah terhubung lewat router.' : 'Semua kesalahan berhasil ditemukan dan diperbaiki.');
+    var cfgs = '';
+    if (level === 3) {
+      cfgs = '<div class="reveal"><b>Konfigurasi akhir</b><ol>' + devIds.map(function(id){ var d = S.dev[id]; return '<li>' + d.name + ': ' + esc(d.ip) + ' / ' + esc(d.mask) + ', gateway ' + esc(d.gw || '-') + '</li>'; }).join('') + '</ol></div>';
+    }
+    setTimeout(function(){
+      if (!document.getElementById('troot')) return;
+      showResult({level:level, stars:s, title: level === 3 ? 'Jaringan pulih!' : 'Semua terhubung!', text:text, stats:['Pengujian: ' + uses + 'x'].concat(hintsUsed ? ['Petunjuk: ' + hintsUsed] : []), extra:cfgs,
+        note:'Simulasi sederhana berbasis aturan dasar (IP, subnet mask, gateway), bukan emulator perangkat sungguhan.'});
+    }, 700);
+  }
+  drawClues();
+  drawGoals();
+}
+
+GAME = {
+  key:'tracer', title:'Mini Packet Tracer', emoji:'🖧',
+  intro:'Atur IP, subnet mask, dan gateway, lalu uji dengan ping dan traceroute. Versi sederhana, tanpa perlu mengetik command.',
+  levels:[['Mudah','2 PC dalam satu jaringan, isi IP dan mask'],['Sedang','2 jaringan lewat router, isi IP, mask, dan gateway'],['Sulit','Jaringan sudah jadi tapi ada 3 kesalahan, cari dengan ping dan traceroute']],
+  foot:'Rujukan: Modul Sistem Jaringan Komputer, bagian Penerapan (konfigurasi dan pengujian), hal. 44-46.',
+  start:startTracer
+};
+showMenu();
+
+</script>
+</body>
+</html>

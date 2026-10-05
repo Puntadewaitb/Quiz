@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Detektif Jaringan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#FFF9F3; --card:#FFFFFF; --ink:#182255; --muted:#566086;
+  --accent:#F79039; --accent-2:#FEBD26;
+  --peach:#FCDDC2; --peach-2:#FBCCA4; --line:#F3D3B6;
+  --ok:#14805A; --ok-bg:#DDF4EA; --bad:#C23A3A; --bad-bg:#FBE1E1;
+  --term:#101636; --term-ink:#D9F7E8;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121731; --card:#1B2347; --ink:#F4EFE8; --muted:#AAB1D3;
+    --peach:#2A3263; --peach-2:#36407A; --line:#3A4580;
+    --ok:#4CD6A0; --ok-bg:#12382C; --bad:#FF8A8A; --bad-bg:#44202A;
+    --term:#0A0E24;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121731; --card:#1B2347; --ink:#F4EFE8; --muted:#AAB1D3;
+  --peach:#2A3263; --peach-2:#36407A; --line:#3A4580;
+  --ok:#4CD6A0; --ok-bg:#12382C; --bad:#FF8A8A; --bad-bg:#44202A;
+  --term:#0A0E24;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:Arial,"Helvetica Neue",sans-serif;font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+h1,h2,h3{font-family:Montserrat,Arial,sans-serif;margin:0;line-height:1.2}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent-2);outline-offset:2px}
+.app{max-width:720px;margin:0 auto;padding:16px 14px 28px}
+
+/* menu */
+.hero{background:var(--accent);color:#fff;border-radius:22px;padding:22px 20px 20px;position:relative;overflow:hidden}
+.hero h1{font-size:clamp(26px,7vw,34px);font-weight:800;color:#fff;padding-right:84px}
+.hero p{margin:8px 0 0;color:#FFF3E6;padding-right:84px}
+.hero .decor{position:absolute;right:14px;top:14px;font-size:58px;line-height:1;transform:rotate(-6deg)}
+.levels{display:grid;gap:12px;margin-top:16px}
+.lvl{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;text-align:left;
+  background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px 16px;width:100%}
+.lvl:hover{border-color:var(--accent)}
+.lvl .no{width:46px;height:46px;border-radius:50%;background:var(--peach);display:grid;place-items:center;
+  font-family:Montserrat,Arial,sans-serif;font-weight:800;font-size:20px}
+.lvl h2{font-size:17px}
+.lvl p{margin:3px 0 0;color:var(--muted);font-size:14px}
+.stars{font-size:20px;letter-spacing:2px;color:var(--accent-2);white-space:nowrap}
+.stars .off{color:var(--line)}
+.foot{margin-top:18px;color:var(--muted);font-size:13px}
+
+/* bar */
+.bar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.back{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:8px 12px;font-weight:700}
+.bar h2{font-size:18px;flex:1}
+.chip{background:var(--peach);border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;white-space:nowrap}
+.chip.warn{background:var(--bad-bg);color:var(--bad)}
+.chip.good{background:var(--ok-bg);color:var(--ok)}
+.status{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.task{background:var(--peach);border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:15.5px}
+.hint{margin:0 0 12px;color:var(--muted);font-size:14.5px}
+.btn{border:0;border-radius:14px;padding:12px 18px;font-weight:700;background:var(--accent);color:#fff;flex:1}
+.btn.alt{background:var(--card);color:var(--ink);border:2px solid var(--line)}
+.btn.dark{background:var(--ink);color:var(--bg)}
+.btn:disabled{opacity:.5;cursor:default}
+.row-btns{display:flex;gap:10px;margin-top:14px}
+.msg{margin-top:12px;min-height:22px;font-weight:700;text-align:center}
+
+/* quiz */
+.qcard{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px}
+.qcard h3{font-size:17px;margin-bottom:6px}
+.ctx{margin:0 0 10px;font-size:15px}
+.clue{background:var(--peach);border-radius:12px;padding:10px 12px;margin:0 0 10px;font-size:14.5px}
+.clue b{display:block;margin-bottom:2px}
+.opts{display:grid;gap:10px;margin-top:12px}
+.opts.cols2{grid-template-columns:1fr 1fr}
+.opt{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:12px 14px;text-align:left;font-weight:700;font-size:15px}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.right{background:var(--ok-bg);border-color:var(--ok)}
+.opt.wrong{background:var(--bad-bg);border-color:var(--bad)}
+.fb{margin-top:14px;border-radius:14px;padding:12px 14px;font-size:14.5px}
+.fb.ok{background:var(--ok-bg)} .fb.bad{background:var(--bad-bg)}
+.fb b{display:block;margin-bottom:2px}
+
+/* sorter */
+.spool{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:6px 0 8px;margin-bottom:8px}
+.spool .box{border:2px dashed var(--line);border-radius:16px;background:var(--card);padding:8px;display:flex;flex-wrap:wrap;gap:6px;
+  justify-content:center;max-height:34vh;overflow:auto;min-height:56px;align-items:center}
+.scard{border:2px solid var(--peach-2);background:var(--peach);border-radius:12px;padding:7px 11px;font-weight:700;font-size:14px;text-align:left}
+.scard.sel{outline:3px solid var(--accent-2);transform:translateY(-2px);border-color:var(--accent)}
+.scard.ok{background:var(--ok-bg);border-color:var(--ok)}
+.scard.bad{background:var(--bad-bg);border-color:var(--bad)}
+.spool .empty{color:var(--muted);font-size:14px}
+.bin{border:2px solid var(--line);background:var(--card);border-radius:16px;padding:9px 11px 10px;margin-bottom:8px;cursor:pointer}
+.bin.target{border-color:var(--accent);background:var(--peach)}
+.bin .bl{font-weight:800;font-size:14.5px}
+.bin .bs{font-weight:400;color:var(--muted);font-size:12.5px;margin-left:6px}
+.bin .items{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;min-height:6px}
+
+/* order */
+.slots{display:grid;gap:8px}
+.slot{display:flex;gap:10px;align-items:stretch;min-height:46px}
+.slot .n{flex:0 0 34px;border-radius:10px;background:var(--peach);display:grid;place-items:center;font-weight:800}
+.slot .c{flex:1;border:2px dashed var(--line);border-radius:12px;padding:8px 12px;display:flex;align-items:center;text-align:left;
+  background:var(--card);font-size:14.5px;min-height:46px}
+.slot .c.filled{border-style:solid;border-color:var(--peach-2);background:var(--peach);font-weight:700;cursor:pointer}
+.slot .c.locked{background:var(--card);border-color:var(--ink);cursor:default}
+.slot .c.ok{background:var(--ok-bg);border-color:var(--ok)}
+.slot .c.bad{background:var(--bad-bg);border-color:var(--bad)}
+.slot .lab{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.opool{margin-top:12px;display:grid;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:16px;background:var(--card)}
+.opool.g2{grid-template-columns:1fr 1fr}
+.ocard{border:2px solid var(--peach-2);background:var(--peach);border-radius:12px;padding:9px 12px;font-weight:700;font-size:14px;text-align:left}
+.opool .empty{color:var(--muted);font-size:14px;grid-column:1/-1;text-align:center}
+.reveal{margin-top:12px;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px 14px}
+.reveal ol{margin:6px 0 0;padding-left:20px}
+.reveal li{margin-bottom:6px;font-size:14.5px}
+
+/* result */
+.result{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:24px 18px;text-align:center}
+.result .stars{font-size:46px;margin:6px 0 4px}
+.result h2{font-size:22px}
+.result p{color:var(--muted);margin:6px auto 0;max-width:44ch}
+.stat{display:flex;justify-content:center;gap:10px;margin:14px 0 4px;flex-wrap:wrap}
+.stat span{background:var(--peach);border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px}
+.result .row-btns{flex-wrap:wrap}
+.result .row-btns .btn{min-width:130px}
+.extra{margin-top:14px;text-align:left}
+.note{margin-top:14px;font-size:12.5px;color:var(--muted);text-align:left}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+
+</style>
+</head>
+<body>
+<div class="app" id="view"></div>
+<script>
+/* ===================== util umum ===================== */
+var GAME = null;
+var view = document.getElementById('view');
+var timerId = null;
+function clearTimer(){ if (timerId){ clearInterval(timerId); timerId = null; } }
+function shuffle(a){
+  a = a.slice();
+  for (var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function eqArr(a,b){ if (a.length !== b.length) return false; for (var i=0;i<a.length;i++){ if (a[i]!==b[i]) return false; } return true; }
+
+function loadBest(){
+  try { var r = localStorage.getItem('best_' + GAME.key); if (r) return JSON.parse(r); } catch(e){}
+  return {1:0,2:0,3:0};
+}
+function saveBest(level, stars){
+  try {
+    var b = loadBest();
+    if (stars > (b[level]||0)) { b[level] = stars; localStorage.setItem('best_' + GAME.key, JSON.stringify(b)); }
+  } catch(e){}
+}
+function starsHTML(n){
+  var s = '<span class="stars" aria-label="' + n + ' dari 3 bintang">';
+  for (var i=1;i<=3;i++) s += i<=n ? '★' : '<span class="off">★</span>';
+  return s + '</span>';
+}
+function barHTML(title, chip){
+  return '<div class="bar"><button class="back" id="bk">&larr; Menu</button><h2>' + title + '</h2>' + (chip||'') + '</div>';
+}
+function bindBack(){ var b = document.getElementById('bk'); if (b) b.onclick = showMenu; }
+function levelTitle(n){ return 'Level ' + n + ': ' + ['Mudah','Sedang','Sulit'][n-1]; }
+
+/* ===================== menu ===================== */
+function showMenu(){
+  clearTimer();
+  var best = loadBest(), h = '';
+  h += '<div class="hero"><div class="decor" aria-hidden="true">' + GAME.emoji + '</div><h1>' + GAME.title + '</h1><p>' + GAME.intro + '</p></div><div class="levels">';
+  GAME.levels.forEach(function(l, i){
+    h += '<button class="lvl" data-l="' + (i+1) + '"><span class="no">' + (i+1) + '</span><span><h2>' + l[0] + '</h2><p>' + l[1] + '</p></span>' + starsHTML(best[i+1]||0) + '</button>';
+  });
+  h += '</div><p class="foot">Semua level terbuka. Mulai dari mana saja. ' + GAME.foot + '</p>';
+  view.innerHTML = h;
+  Array.prototype.forEach.call(view.querySelectorAll('.lvl'), function(b){
+    b.addEventListener('click', function(){ GAME.start(+b.dataset.l); });
+  });
+}
+
+/* ===================== hasil ===================== */
+function showResult(r){
+  clearTimer();
+  var h = '<div class="result">' + starsHTML(r.stars) + '<h2>' + r.title + '</h2><p>' + r.text + '</p>';
+  if (r.stats && r.stats.length) h += '<div class="stat">' + r.stats.map(function(s){ return '<span>' + s + '</span>'; }).join('') + '</div>';
+  if (r.extra) h += '<div class="extra">' + r.extra + '</div>';
+  h += '<div class="row-btns"><button class="btn alt" id="rm">Menu</button><button class="btn" id="ra">Main lagi</button>' +
+       (r.level < 3 && r.stars > 0 ? '<button class="btn dark" id="rn">Level ' + (r.level+1) + '</button>' : '') + '</div>';
+  if (r.note) h += '<p class="note">' + r.note + '</p>';
+  view.innerHTML = h + '</div>';
+  document.getElementById('rm').onclick = showMenu;
+  document.getElementById('ra').onclick = function(){ GAME.start(r.level); };
+  var rn = document.getElementById('rn');
+  if (rn) rn.onclick = function(){ GAME.start(r.level + 1); };
+}
+function starsBy(v, hi, mid, lo){ return v >= hi ? 3 : (v >= mid ? 2 : (v >= lo ? 1 : 0)); }
+function starsLow(v, a, b){ return v <= a ? 3 : (v <= b ? 2 : 1); }   /* makin kecil makin baik */
+
+/* ===================== komponen: kuis pilihan ===================== */
+/* cfg: {level,title,qs:[{ctx,clue,cluelabel,prompt,opts:[{k,t,fb}],ans,why}],perQ,cols,finish(score,total)} */
+function runQuiz(cfg){
+  clearTimer();
+  var qs = cfg.qs, idx = 0, score = 0, answered = false, left = 0;
+  function render(){
+    clearTimer(); answered = false;
+    var q = qs[idx];
+    var h = barHTML(cfg.title, '<span class="chip">Soal ' + (idx+1) + '/' + qs.length + '</span>');
+    h += '<div class="status"><span class="chip">Skor: ' + score + '</span>' + (cfg.perQ ? '<span class="chip" id="tchip">' + cfg.perQ + ' dtk</span>' : '') + '</div>';
+    h += '<div class="qcard">';
+    if (q.ctx) h += '<p class="ctx">' + q.ctx + '</p>';
+    if (q.clue) h += '<div class="clue"><b>' + (q.cluelabel || 'Temuan') + '</b>' + q.clue + '</div>';
+    h += '<h3>' + q.prompt + '</h3><div class="opts' + (cfg.cols === 2 ? ' cols2' : '') + '">';
+    q.opts.forEach(function(o){ h += '<button class="opt" data-k="' + o.k + '">' + o.t + '</button>'; });
+    h += '</div><div id="fb"></div></div>';
+    view.innerHTML = h;
+    bindBack();
+    Array.prototype.forEach.call(view.querySelectorAll('.opt'), function(b){
+      b.addEventListener('click', function(){ answer(b.dataset.k); });
+    });
+    if (cfg.perQ) {
+      left = cfg.perQ;
+      timerId = setInterval(function(){
+        left--;
+        var c = document.getElementById('tchip');
+        if (c) { c.textContent = left + ' dtk'; c.className = 'chip' + (left <= 5 ? ' warn' : ''); }
+        if (left <= 0) { clearTimer(); answer(null); }
+      }, 1000);
+    }
+  }
+  function answer(k){
+    if (answered) return;
+    answered = true; clearTimer();
+    var q = qs[idx];
+    var right = (k !== null && String(k) === String(q.ans));
+    if (right) score++;
+    var chosen = null, correct = null;
+    q.opts.forEach(function(o){ if (String(o.k) === String(k)) chosen = o; if (String(o.k) === String(q.ans)) correct = o; });
+    Array.prototype.forEach.call(view.querySelectorAll('.opt'), function(b){
+      b.disabled = true;
+      if (String(b.dataset.k) === String(q.ans)) b.classList.add('right');
+      else if (k !== null && b.dataset.k === String(k)) b.classList.add('wrong');
+    });
+    var txt = '';
+    if (k === null) txt += 'Waktu habis. ';
+    if (!right && chosen && chosen.fb) txt += chosen.fb + ' ';
+    if (!right && correct) txt += 'Jawaban tepat: ' + correct.t + '. ';
+    if (right && correct && correct.fb) txt += correct.fb + ' ';
+    if (q.why) txt += q.why;
+    var last = idx === qs.length - 1;
+    document.getElementById('fb').innerHTML =
+      '<div class="fb ' + (right ? 'ok' : 'bad') + '"><b>' + (right ? 'Benar' : (k === null ? 'Waktu habis' : 'Belum tepat')) + '</b>' + txt + '</div>' +
+      '<div class="row-btns"><button class="btn" id="nx">' + (last ? 'Lihat hasil' : 'Lanjut') + '</button></div>';
+    var nx = document.getElementById('nx');
+    nx.onclick = function(){ if (last) cfg.finish(score, qs.length); else { idx++; render(); } };
+    nx.focus();
+  }
+  render();
+}
+
+/* ===================== komponen: urutkan ===================== */
+/* cfg: {level,title,task,items:[{id,t}] (urutan benar),labels,locked:[idx],feedback:'live'|'marks'|'count',timer,g2,reveal,
+         onDone(res),onTimeout(res)} */
+function runOrder(cfg){
+  clearTimer();
+  var items = cfg.items, n = items.length, byId = {};
+  items.forEach(function(it){ byId[it.id] = it; });
+  var st = {slots:[], locked:{}, done:false, mistakes:0, checks:0, left:cfg.timer || 0, msg:'', marks:null};
+  for (var i=0;i<n;i++) st.slots.push(null);
+  (cfg.locked || []).forEach(function(i){ st.slots[i] = items[i].id; st.locked[i] = true; });
+  var poolOrder = shuffle(items.map(function(it){ return it.id; })).filter(function(id){ return st.slots.indexOf(id) < 0; });
+  var fbk = cfg.feedback;
+
+  view.innerHTML = barHTML(cfg.title, '') + '<div id="stage"></div>';
+  bindBack();
+  var stage = document.getElementById('stage');
+
+  function chipHTML(){
+    if (cfg.timer) return '<span class="chip" id="tchip">' + st.left + ' dtk</span>';
+    if (fbk === 'live') return '<span class="chip" id="mchip">Salah: ' + st.mistakes + '</span>';
+    return '<span class="chip" id="mchip">Periksa: ' + st.checks + 'x</span>';
+  }
+  function draw(){
+    var h = '<div class="status">' + chipHTML() + '</div><div class="task">' + cfg.task + '</div><div class="slots" id="slots">';
+    for (var i=0;i<n;i++){
+      var id = st.slots[i], cls = 'c';
+      if (id) {
+        cls += st.locked[i] ? ' locked' : ' filled';
+        if (!st.locked[i]) {
+          if (fbk === 'live') cls += (id === items[i].id ? ' ok' : ' bad');
+          else if (st.marks) cls += (st.marks[i] ? ' ok' : ' bad');
+        }
+      }
+      h += '<div class="slot" data-i="' + i + '"><div class="n">' + (i+1) + '</div><div class="' + cls + '">';
+      if (id) h += '<span>' + (cfg.labels && cfg.showLabels ? '<span class="lab">' + cfg.labels[i] + '</span>' : '') + esc(byId[id].t) + (st.locked[i] ? ' <span class="lab" style="display:inline">(terkunci)</span>' : '') + '</span>';
+      else h += '<span class="lab" style="color:var(--muted)">Tap kartu di bawah</span>';
+      h += '</div></div>';
+    }
+    h += '</div><div class="opool' + (cfg.g2 ? ' g2' : '') + '" id="opool">';
+    var inPool = poolOrder.filter(function(id){ return st.slots.indexOf(id) < 0; });
+    if (!inPool.length) h += '<span class="empty">Semua kartu sudah dipasang</span>';
+    inPool.forEach(function(id){ h += '<button class="ocard" data-id="' + id + '">' + esc(byId[id].t) + '</button>'; });
+    h += '</div><div class="row-btns"><button class="btn alt" id="rs">Ulangi</button>' +
+         (fbk !== 'live' ? '<button class="btn" id="ck">Periksa</button>' : '') + '</div><div class="msg" id="msg"></div>';
+    stage.innerHTML = h;
+    document.getElementById('msg').textContent = st.msg;
+    document.getElementById('rs').onclick = function(){
+      if (st.done) return;
+      for (var i=0;i<n;i++) if (!st.locked[i]) st.slots[i] = null;
+      st.msg = ''; st.marks = null; draw();
+    };
+    var ck = document.getElementById('ck');
+    if (ck) ck.onclick = check;
+  }
+  function firstEmpty(){ for (var i=0;i<n;i++) if (st.slots[i] === null) return i; return -1; }
+  function allCorrect(){ for (var i=0;i<n;i++) if (st.slots[i] !== items[i].id) return false; return true; }
+
+  stage.addEventListener('click', function(e){
+    if (st.done) return;
+    var oc = e.target.closest('.ocard');
+    if (oc) {
+      var i = firstEmpty();
+      if (i < 0) return;
+      st.slots[i] = oc.dataset.id; st.msg = ''; st.marks = null;
+      if (fbk === 'live' && oc.dataset.id !== items[i].id) st.mistakes++;
+      draw();
+      if (fbk === 'live') {
+        if (allCorrect()) finish();
+        else if (firstEmpty() < 0) { st.msg = 'Tap kartu yang merah untuk mengembalikannya, lalu coba lagi.'; draw(); }
+      }
+      return;
+    }
+    var sl = e.target.closest('.slot');
+    if (sl) {
+      var j = +sl.dataset.i;
+      if (st.slots[j] && !st.locked[j]) { st.slots[j] = null; st.msg = ''; st.marks = null; draw(); }
+    }
+  });
+
+  function check(){
+    if (st.done) return;
+    if (firstEmpty() >= 0) { st.msg = 'Isi semua posisi dulu.'; draw(); return; }
+    st.checks++;
+    var ok = 0, marks = [];
+    for (var i=0;i<n;i++){ var m = st.slots[i] === items[i].id; marks.push(m); if (m) ok++; }
+    if (ok === n) { finish(); return; }
+    st.marks = fbk === 'marks' ? marks : null;
+    st.msg = ok + ' dari ' + n + ' posisi sudah benar. Coba lagi.';
+    draw();
+  }
+  function finish(){
+    if (st.done) return;
+    st.done = true; clearTimer();
+    var res = {mistakes:st.mistakes, checks:st.checks, left:st.left, ok:true};
+    if (cfg.reveal) {
+      var h = '<div class="reveal"><b>Urutan yang benar</b><ol>';
+      items.forEach(function(it, i){ h += '<li>' + (cfg.labels ? '<b>' + cfg.labels[i] + ':</b> ' : '') + esc(it.t) + '</li>'; });
+      h += '</ol></div><div class="row-btns"><button class="btn" id="go">Lanjut</button></div>';
+      stage.innerHTML = '<div class="status"><span class="chip good">Urutan benar</span></div>' + h;
+      document.getElementById('go').onclick = function(){ cfg.onDone(res); };
+    } else cfg.onDone(res);
+  }
+  if (cfg.timer) {
+    timerId = setInterval(function(){
+      if (st.done) return;
+      st.left--;
+      var c = document.getElementById('tchip');
+      if (c) { c.textContent = st.left + ' dtk'; c.className = 'chip' + (st.left <= 15 ? ' warn' : ''); }
+      if (st.left <= 0) { st.left = 0; st.done = true; clearTimer(); if (cfg.onTimeout) cfg.onTimeout({checks:st.checks}); }
+    }, 1000);
+  }
+  draw();
+}
+
+/* ===================== komponen: sortir ke kotak ===================== */
+/* cfg: {level,title,task,bins:[{id,label,short,sub}],cards:[{id,t,bin}],hideNames,feedback:'live'|'check',onDone(res)} */
+function runSorter(cfg){
+  clearTimer();
+  var st = {place:{}, sel:null, mistakes:0, checks:0, done:false, msg:'', marks:null};
+  var cards = shuffle(cfg.cards), byId = {};
+  cfg.cards.forEach(function(c){ byId[c.id] = c; });
+  var live = cfg.feedback === 'live';
+  view.innerHTML = barHTML(cfg.title, '') + '<div id="stage"></div>';
+  bindBack();
+  var stage = document.getElementById('stage');
+
+  function draw(){
+    var h = '<div class="status"><span class="chip" id="mchip">' + (live ? 'Salah: ' + st.mistakes : 'Periksa: ' + st.checks + 'x') + '</span></div>';
+    h += '<div class="task">' + cfg.task + '</div>';
+    h += '<div class="spool"><div class="box" id="pool">';
+    var rest = cards.filter(function(c){ return !st.place[c.id]; });
+    if (!rest.length) h += '<span class="empty">Semua kartu sudah dipasang</span>';
+    rest.forEach(function(c){ h += '<button class="scard' + (st.sel === c.id ? ' sel' : '') + '" data-id="' + c.id + '">' + esc(c.t) + '</button>'; });
+    h += '</div></div><div id="bins">';
+    cfg.bins.forEach(function(b){
+      h += '<div class="bin' + (st.sel ? ' target' : '') + '" data-bin="' + b.id + '"><div class="bl">' + (cfg.hideNames ? b.short : b.label) +
+           (!cfg.hideNames && b.sub ? '<span class="bs">' + b.sub + '</span>' : '') + '</div><div class="items">';
+      cards.filter(function(c){ return st.place[c.id] === b.id; }).forEach(function(c){
+        var cls = 'scard';
+        if (live) cls += (c.bin === b.id ? ' ok' : ' bad');
+        else if (st.marks) cls += (c.bin === b.id ? ' ok' : ' bad');
+        h += '<button class="' + cls + '" data-placed="' + c.id + '">' + esc(c.t) + '</button>';
+      });
+      h += '</div></div>';
+    });
+    h += '</div>' + (live ? '' : '<div class="row-btns"><button class="btn alt" id="rs">Ulangi</button><button class="btn" id="ck">Periksa</button></div>') +
+         '<div class="msg" id="msg"></div>';
+    stage.innerHTML = h;
+    document.getElementById('msg').textContent = st.msg;
+    var rs = document.getElementById('rs');
+    if (rs) rs.onclick = function(){ if (st.done) return; st.place = {}; st.sel = null; st.msg = ''; st.marks = null; draw(); };
+    var ck = document.getElementById('ck');
+    if (ck) ck.onclick = check;
+  }
+  function allPlaced(){ return cards.every(function(c){ return st.place[c.id]; }); }
+  function allRight(){ return cards.every(function(c){ return st.place[c.id] === c.bin; }); }
+
+  stage.addEventListener('click', function(e){
+    if (st.done) return;
+    var c = e.target.closest('#pool [data-id]');
+    if (c) { st.sel = (st.sel === c.dataset.id) ? null : c.dataset.id; draw(); return; }
+    var bin = e.target.closest('[data-bin]');
+    var pc = e.target.closest('[data-placed]');
+    if (pc && !st.sel) { delete st.place[pc.dataset.placed]; st.msg = ''; st.marks = null; draw(); return; }
+    if (bin && st.sel) {
+      var card = byId[st.sel];
+      st.place[card.id] = bin.dataset.bin;
+      if (live && card.bin !== bin.dataset.bin) st.mistakes++;
+      st.sel = null; st.msg = ''; st.marks = null;
+      draw();
+      if (live) {
+        if (allRight()) finish();
+        else if (allPlaced()) { st.msg = 'Tap kartu yang merah untuk memindahkannya, lalu coba lagi.'; draw(); }
+      }
+    }
+  });
+  function check(){
+    if (st.done) return;
+    if (!allPlaced()) { st.msg = 'Pasang semua kartu dulu.'; draw(); return; }
+    st.checks++;
+    var ok = cards.filter(function(c){ return st.place[c.id] === c.bin; }).length;
+    if (ok === cards.length) { finish(); return; }
+    st.marks = true;
+    st.msg = ok + ' dari ' + cards.length + ' kartu sudah di tempat yang benar.';
+    draw();
+  }
+  function finish(){
+    if (st.done) return;
+    st.done = true;
+    cfg.onDone({mistakes:st.mistakes, checks:st.checks});
+  }
+  draw();
+}
+
+/* ===================== Detektif Jaringan ===================== */
+var CASES1 = [
+  {ctx:'Pak Budi tidak bisa membuka aplikasi internal. Lampu link di kartu jaringan (NIC) komputernya mati.',
+   opts:[{k:'a',t:'Instal ulang Windows',fb:'Terlalu jauh. Lampu link mati menunjuk ke kabel atau port, bukan sistem operasi.'},
+         {k:'b',t:'Cek kabel LAN dan port switch'},
+         {k:'c',t:'Ganti alamat DNS server',fb:'DNS baru relevan kalau koneksi fisiknya sudah hidup.'}],
+   ans:'b', why:'Pengujian berlapis dimulai dari Physical layer: pastikan kabel dan port dulu (modul hal. 45).'},
+  {ctx:'PC berhasil ping ke IP server, tetapi nama server tidak bisa dibuka di browser.',
+   opts:[{k:'a',t:'Ganti kabel jaringan',fb:'Ping ke IP berhasil, jadi kabel sudah baik.'},
+         {k:'b',t:'Cek pengaturan DNS di PC'},
+         {k:'c',t:'Ubah subnet mask',fb:'Koneksi ke IP sudah jalan, jadi mask bukan penyebabnya.'}],
+   ans:'b', why:'Koneksi sampai ke IP, tetapi penerjemahan nama gagal. Itu ciri masalah DNS.'},
+  {ctx:'Sebuah PC tidak mendapat IP yang benar, padahal kabel terpasang. PC lain di ruangan itu normal.',
+   opts:[{k:'a',t:'Periksa konfigurasi IP PC itu (apakah DHCP aktif)'},
+         {k:'b',t:'Restart router kantor',fb:'PC lain normal, jadi masalahnya terlokalisasi di PC ini.'},
+         {k:'c',t:'Ganti penyedia internet',fb:'Terlalu besar untuk masalah di satu PC.'}],
+   ans:'a', why:'Tentukan letak masalah dulu. Karena hanya satu PC, periksa sisi klien (modul hal. 45).'},
+  {ctx:'Seluruh pengguna di lantai 3 terputus. Lantai lain normal.',
+   opts:[{k:'a',t:'Instal ulang semua PC di lantai 3',fb:'Banyak PC sekaligus bermasalah, penyebab bersama lebih mungkin.'},
+         {k:'b',t:'Ganti password Wi-Fi',fb:'Tidak ada hubungannya dengan putusnya jaringan kabel satu lantai.'},
+         {k:'c',t:'Cek switch lantai 3 dan jalur uplink-nya'}],
+   ans:'c', why:'Satu lantai terdampak berarti penyebab bersama, misalnya switch atau uplink lantai itu.'},
+  {ctx:'PC tidak bisa ping ke gateway. PC lain di segmen yang sama normal.',
+   opts:[{k:'a',t:'Periksa IP, mask, dan gateway di PC itu'},
+         {k:'b',t:'Beli bandwidth lebih besar',fb:'Ini bukan masalah kapasitas, karena PC lain normal.'},
+         {k:'c',t:'Matikan semua switch',fb:'Justru memperluas dampak ke pengguna lain.'}],
+   ans:'a', why:'Hanya satu PC yang gagal, jadi cek konfigurasi lokal sebelum menyentuh infrastruktur bersama.'}
+];
+var CASES2 = [
+  {ctx:'Satu PC tidak bisa ke internet. PC lain di ruangan yang sama normal.',
+   s1:{prompt:'Uji apa yang paling dulu dilakukan?',
+       opts:[{k:'a',t:'Lihat konfigurasi IP, mask, dan gateway di PC itu (ipconfig)'},
+             {k:'b',t:'Ganti router kantor',fb:'PC lain normal, router bukan tersangka utama.'},
+             {k:'c',t:'Ganti semua kabel di ruangan',fb:'Terlalu luas untuk masalah yang hanya di satu PC.'}],
+       ans:'a', why:'Periksa konfigurasi lokal dulu sebelum menguji ke luar.'},
+   clue:'IP 192.168.10.25, mask 255.255.255.0, gateway 192.168.1.1. Router kantor memakai 192.168.10.1.',
+   s2:{prompt:'Apa penyebab dan perbaikannya?',
+       opts:[{k:'a',t:'Gateway tidak satu subnet dengan PC: ubah ke 192.168.10.1'},
+             {k:'b',t:'Kabel rusak: ganti kabel',fb:'IP sudah terbaca, jadi koneksi fisik hidup.'},
+             {k:'c',t:'DNS salah: ganti DNS',fb:'DNS tidak bisa menolong kalau gateway tidak terjangkau.'}],
+       ans:'a', why:'Gateway harus berada di subnet yang sama dengan PC.'}},
+  {ctx:'Beberapa PC di satu ruangan tidak mendapat IP otomatis. PC yang sudah menyala sejak pagi masih normal.',
+   s1:{prompt:'Uji apa yang paling masuk akal?',
+       opts:[{k:'a',t:'Cek status DHCP server dan jumlah alamat yang masih tersedia'},
+             {k:'b',t:'Instal ulang PC yang gagal',fb:'Banyak PC gagal sekaligus, jadi penyebabnya bukan di tiap PC.'},
+             {k:'c',t:'Ganti subnet mask semua PC',fb:'Mask bukan penyebab PC gagal mendapat IP.'}],
+       ans:'a', why:'PC baru gagal, PC lama aman. Periksa layanan yang membagikan alamat.'},
+   clue:'DHCP server aktif, tetapi seluruh 50 alamat di pool sudah terpakai.',
+   s2:{prompt:'Apa tindakan yang tepat?',
+       opts:[{k:'a',t:'Perbesar pool DHCP atau perpendek masa sewa (lease)'},
+             {k:'b',t:'Matikan firewall',fb:'Tidak berkaitan dengan habisnya alamat.'},
+             {k:'c',t:'Ganti semua kabel',fb:'Kabel tidak membuat alamat DHCP habis.'}],
+       ans:'a', why:'Pool yang habis perlu diperbesar atau dikelola lebih efisien.'}},
+  {ctx:'Internet kantor lambat setiap sore. Pagi hari normal.',
+   s1:{prompt:'Apa yang dilakukan lebih dulu?',
+       opts:[{k:'a',t:'Lihat grafik monitoring trafik (SNMP/MRTG) pada jam lambat'},
+             {k:'b',t:'Restart semua PC',fb:'Tidak menjawab kenapa lambatnya hanya sore hari.'},
+             {k:'c',t:'Langsung beli bandwidth lebih besar',fb:'Keputusan upgrade butuh data dulu.'}],
+       ans:'a', why:'Monitoring memberi data trafik untuk menentukan penyebab (modul hal. 50-52).'},
+   clue:'Utilisasi WAN mencapai sekitar 95% pada pukul 15.00 sampai 17.00.',
+   s2:{prompt:'Tindakan yang paling tepat?',
+       opts:[{k:'a',t:'Lakukan capacity planning dan pertimbangkan upgrade'},
+             {k:'b',t:'Abaikan karena masih dalam batas normal',fb:'95% sudah mendekati penuh, itu tanda perlu tindakan.'},
+             {k:'c',t:'Hapus log monitoring',fb:'Menghapus data justru menghilangkan bukti.'}],
+       ans:'a', why:'Utilisasi yang mendekati penuh perlu perencanaan kapasitas.'}},
+  {ctx:'Aplikasi web internal tiba-tiba tidak bisa diakses dari semua PC. Server dalam keadaan menyala.',
+   s1:{prompt:'Uji apa yang paling dulu?',
+       opts:[{k:'a',t:'Uji berlapis: ping IP server, lalu cek koneksi ke port layanan'},
+             {k:'b',t:'Instal ulang browser di semua PC',fb:'Semua PC gagal, jadi bukan masalah browser.'},
+             {k:'c',t:'Ganti server',fb:'Belum ada bukti server rusak.'}],
+       ans:'a', why:'Uji dari bawah ke atas untuk mempersempit letak masalah.'},
+   clue:'Ping ke IP server berhasil, tetapi koneksi ke port 443 timeout. Kemarin ada perubahan aturan firewall.',
+   s2:{prompt:'Apa penyebab dan tindak lanjutnya?',
+       opts:[{k:'a',t:'Aturan firewall untuk port 443 terblokir: perbaiki aturan, lalu catat perubahannya'},
+             {k:'b',t:'Subnet mask semua PC salah',fb:'Ping berhasil, jadi pengalamatan IP sudah benar.'},
+             {k:'c',t:'Kabel server rusak',fb:'Ping berhasil, jadi kabel baik.'}],
+       ans:'a', why:'Ping jalan tetapi port tertutup mengarah ke aturan firewall.'}}
+];
+var ORD = [
+  {ctx:'Switch lantai 3 mati, sekitar 40 pengguna terputus.',
+   t:['Lihat dashboard monitoring: hanya segmen lantai 3 yang down','Periksa log dan lampu port uplink: uplink fiber tidak ada sinyal','Alihkan lantai 3 ke jalur cadangan agar jaringan lain tidak terdampak','Ganti modul SFP yang rusak dan kembalikan jalur utama','Catat penyebab, perbaikan, dan waktu pemulihan di log insiden']},
+  {ctx:'Internet lambat setiap jam kerja.',
+   t:['Lihat grafik monitoring: bandwidth WAN penuh pada jam tertentu','Telusuri sumber trafik: satu server backup mengirim data tiap jam 10','Batasi sementara trafik itu agar pengguna lain tidak terdampak','Jadwalkan ulang backup ke malam hari','Catat temuan dan perubahan jadwal untuk perencanaan kapasitas']},
+  {ctx:'Divisi keuangan tidak bisa mencetak ke printer jaringan.',
+   t:['Cek siapa yang terdampak: hanya VLAN keuangan','Periksa konfigurasi ACL: aturan baru memblokir segmen keuangan ke printer','Izinkan sementara akses ke printer untuk VLAN keuangan tanpa membuka segmen lain','Perbaiki ACL sesuai kebijakan segmentasi','Catat perubahan ACL dan penyebabnya']}
+];
+var LABELS = ['Tentukan letak masalah','Diagnosa','By-pass','Selesaikan','Dokumentasikan'];
+
+GAME = {
+  key:'detektif', title:'Detektif Jaringan', emoji:'🕵️',
+  intro:'Cari penyebab masalah jaringan dengan langkah yang runtut, dari lokalisasi sampai dokumentasi.',
+  levels:[['Mudah','3 kasus, pilih langkah pertama yang tepat'],['Sedang','3 kasus bertahap: uji dulu, lalu tentukan penyebab'],['Sulit','Urutkan 5 langkah analisis masalah pada 2 kasus']],
+  foot:'Rujukan: Modul Sistem Jaringan Komputer hal. 45 dan hal. 55-56.',
+  start:function(level){
+    if (level === 1) {
+      var qs = shuffle(CASES1).slice(0, 3).map(function(c){
+        return {ctx:c.ctx, prompt:'Langkah pertama yang paling tepat?', opts:c.opts, ans:c.ans, why:c.why};
+      });
+      runQuiz({level:1, title:levelTitle(1), qs:qs,
+        finish:function(score, total){
+          var s = starsBy(score, 3, 2, 1); saveBest(1, s);
+          showResult({level:1, stars:s, title:'Skor ' + score + ' dari ' + total, text: s === 3 ? 'Tajam. Selalu persempit letak masalah dulu.' : 'Bagus. Ingat: persempit dulu letak masalahnya.', stats:[]});
+        }});
+    } else if (level === 2) {
+      var qs2 = [];
+      shuffle(CASES2).slice(0, 3).forEach(function(c){
+        qs2.push({ctx:c.ctx, prompt:c.s1.prompt, opts:c.s1.opts, ans:c.s1.ans, why:c.s1.why});
+        qs2.push({ctx:c.ctx, clue:c.clue, cluelabel:'Hasil pengujian', prompt:c.s2.prompt, opts:c.s2.opts, ans:c.s2.ans, why:c.s2.why});
+      });
+      runQuiz({level:2, title:levelTitle(2), qs:qs2,
+        finish:function(score, total){
+          var s = starsBy(score, 5, 3, 1); saveBest(2, s);
+          showResult({level:2, stars:s, title:'Skor ' + score + ' dari ' + total, text: s === 3 ? 'Tajam. Uji dulu, baru putuskan.' : 'Bagus. Ulangi dan baca hasil pengujiannya dengan teliti.', stats:[]});
+        }});
+    } else {
+      var cases = shuffle(ORD).slice(0, 2), ci = 0, totalChecks = 0;
+      (function nextCase(){
+        var c = cases[ci];
+        runOrder({level:3, title:levelTitle(3) + ' (' + (ci+1) + '/2)', items:c.t.map(function(t, i){ return {id:'s' + i, t:t}; }),
+          labels:LABELS, reveal:true, feedback:'count',
+          task:'<b>' + c.ctx + '</b> Urutkan 5 langkah analisis masalah dari yang paling awal, lalu tap Periksa.',
+          onDone:function(r){
+            totalChecks += r.checks; ci++;
+            if (ci < cases.length) nextCase();
+            else {
+              var s = starsLow(totalChecks, 2, 4); saveBest(3, s);
+              showResult({level:3, stars:s, title:'Dua kasus selesai!', text: s === 3 ? 'Tajam. Urutannya sudah jadi kebiasaan.' : 'Berhasil. Ulangi supaya sekali jalan.', stats:['Pemeriksaan: ' + totalChecks + 'x'],
+                note:'Urutan mengikuti modul: tentukan letak masalah, diagnosa, by-pass, selesaikan, lalu dokumentasikan.'});
+            }
+          }});
+      })();
+    }
+  }
+};
+showMenu();
+
+</script>
+</body>
+</html>
