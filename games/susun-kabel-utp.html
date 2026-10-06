@@ -579,7 +579,7 @@ var KNOW = [
    opts:[opt('a','BNC'), opt('b','RJ-11'), opt('c','RJ-45'), opt('d','SC')],
    why:'Modul membahas pemasangan konektor RJ-45 pada kabel UTP.'},
   {type:'know', prompt:'Menurut modul, kabel UTP yang umum dipakai untuk koneksi wired adalah?', ans:'b',
-   opts:[opt('a','Category 3'), opt('b','Category 6 atau 6a'), opt('c','Coaxial RG-58'), opt('d','Kabel telepon')],
+   opts:[opt('a','Category 3 untuk telepon'), opt('b','Category 6 atau 6a'), opt('c','Coaxial RG-58 (BNC)'), opt('d','Kabel telepon biasa')],
    why:'Modul (hal. 43): kabel UTP Category 6/6a umum digunakan untuk koneksi wired.'},
   {type:'know', prompt:'Standar structured cabling yang dirujuk modul adalah?', ans:'a',
    opts:[opt('a','TIA/EIA-568'), opt('b','ISO/IEC 27001'), opt('c','IEEE 802.11ax'), opt('d','COBIT')],
@@ -589,7 +589,7 @@ function makeQuestions(){
   var g1 = [function(){return qVisual('S');}, function(){return qVisual('C');}, function(){return qVisual('X');},
             function(){return qPair('S');}, function(){return qPair('C');}, function(){return qWhich('S');}, function(){return qWhich('C');}];
   var g2 = [qPin, qMissing, function(){return qComplete('S');}, function(){return qComplete('C');}, qDiff, qSwap];
-  var g3 = KNOW.map(function(k){ return function(){ return JSON.parse(JSON.stringify(k)); }; });
+  var g3 = KNOW.map(function(k){ return function(){ var q = JSON.parse(JSON.stringify(k)); q.opts = shuffle(q.opts); return q; }; });
   var s1 = shuffle(g1), s2 = shuffle(g2), s3 = shuffle(g3);
   var chosen = s1.slice(0,3).concat(s2.slice(0,3), s3.slice(0,1));
   var rest = s1.slice(3).concat(s2.slice(3), s3.slice(1));

@@ -1,79 +1,79 @@
 /* ===================== Detektif Jaringan ===================== */
 var CASES1 = [
   {ctx:'Pak Budi tidak bisa membuka aplikasi internal. Lampu link di kartu jaringan (NIC) komputernya mati.',
-   opts:[{k:'a',t:'Instal ulang Windows',fb:'Terlalu jauh. Lampu link mati menunjuk ke kabel atau port, bukan sistem operasi.'},
+   opts:[{k:'a',t:'Instal ulang Windows beserta driver NIC',fb:'Terlalu jauh. Lampu link mati menunjuk ke kabel atau port, bukan sistem operasi.'},
          {k:'b',t:'Cek kabel LAN dan port switch'},
-         {k:'c',t:'Ganti alamat DNS server',fb:'DNS baru relevan kalau koneksi fisiknya sudah hidup.'}],
+         {k:'c',t:'Ganti alamat DNS server di pengaturan IP',fb:'DNS baru relevan kalau koneksi fisiknya sudah hidup.'}],
    ans:'b', why:'Pengujian berlapis dimulai dari Physical layer: pastikan kabel dan port dulu (modul hal. 45).'},
   {ctx:'PC berhasil ping ke IP server, tetapi nama server tidak bisa dibuka di browser.',
-   opts:[{k:'a',t:'Ganti kabel jaringan',fb:'Ping ke IP berhasil, jadi kabel sudah baik.'},
-         {k:'b',t:'Cek pengaturan DNS di PC'},
-         {k:'c',t:'Ubah subnet mask',fb:'Koneksi ke IP sudah jalan, jadi mask bukan penyebabnya.'}],
+   opts:[{k:'a',t:'Ganti kabel jaringan dengan yang baru',fb:'Ping ke IP berhasil, jadi kabel sudah baik.'},
+         {k:'b',t:'Cek pengaturan DNS di komputer klien'},
+         {k:'c',t:'Ubah subnet mask jadi 255.255.0.0',fb:'Koneksi ke IP sudah jalan, jadi mask bukan penyebabnya.'}],
    ans:'b', why:'Koneksi sampai ke IP, tetapi penerjemahan nama gagal. Itu ciri masalah DNS.'},
   {ctx:'Sebuah PC tidak mendapat IP yang benar, padahal kabel terpasang. PC lain di ruangan itu normal.',
    opts:[{k:'a',t:'Periksa konfigurasi IP PC itu (apakah DHCP aktif)'},
-         {k:'b',t:'Restart router kantor',fb:'PC lain normal, jadi masalahnya terlokalisasi di PC ini.'},
-         {k:'c',t:'Ganti penyedia internet',fb:'Terlalu besar untuk masalah di satu PC.'}],
+         {k:'b',t:'Restart router kantor beserta semua switch lantai',fb:'PC lain normal, jadi masalahnya terlokalisasi di PC ini.'},
+         {k:'c',t:'Ganti penyedia internet dan minta IP statis baru',fb:'Terlalu besar untuk masalah di satu PC.'}],
    ans:'a', why:'Tentukan letak masalah dulu. Karena hanya satu PC, periksa sisi klien (modul hal. 45).'},
   {ctx:'Seluruh pengguna di lantai 3 terputus. Lantai lain normal.',
-   opts:[{k:'a',t:'Instal ulang semua PC di lantai 3',fb:'Banyak PC sekaligus bermasalah, penyebab bersama lebih mungkin.'},
-         {k:'b',t:'Ganti password Wi-Fi',fb:'Tidak ada hubungannya dengan putusnya jaringan kabel satu lantai.'},
+   opts:[{k:'a',t:'Instal ulang sistem operasi semua PC di lantai 3',fb:'Banyak PC sekaligus bermasalah, penyebab bersama lebih mungkin.'},
+         {k:'b',t:'Ganti password Wi-Fi dan reset AP',fb:'Tidak ada hubungannya dengan putusnya jaringan kabel satu lantai.'},
          {k:'c',t:'Cek switch lantai 3 dan jalur uplink-nya'}],
    ans:'c', why:'Satu lantai terdampak berarti penyebab bersama, misalnya switch atau uplink lantai itu.'},
   {ctx:'PC tidak bisa ping ke gateway. PC lain di segmen yang sama normal.',
    opts:[{k:'a',t:'Periksa IP, mask, dan gateway di PC itu'},
-         {k:'b',t:'Beli bandwidth lebih besar',fb:'Ini bukan masalah kapasitas, karena PC lain normal.'},
-         {k:'c',t:'Matikan semua switch',fb:'Justru memperluas dampak ke pengguna lain.'}],
+         {k:'b',t:'Beli tambahan bandwidth dari operator ISP',fb:'Ini bukan masalah kapasitas, karena PC lain normal.'},
+         {k:'c',t:'Matikan semua switch lalu nyalakan ulang',fb:'Justru memperluas dampak ke pengguna lain.'}],
    ans:'a', why:'Hanya satu PC yang gagal, jadi cek konfigurasi lokal sebelum menyentuh infrastruktur bersama.'}
 ];
 var CASES2 = [
   {ctx:'Satu PC tidak bisa ke internet. PC lain di ruangan yang sama normal.',
    s1:{prompt:'Uji apa yang paling dulu dilakukan?',
-       opts:[{k:'a',t:'Lihat konfigurasi IP, mask, dan gateway di PC itu (ipconfig)'},
-             {k:'b',t:'Ganti router kantor',fb:'PC lain normal, router bukan tersangka utama.'},
+       opts:[{k:'a',t:'Periksa IP, mask, dan gateway di PC itu (ipconfig)'},
+             {k:'b',t:'Ganti router kantor lalu uji ulang semua PC di ruangan',fb:'PC lain normal, router bukan tersangka utama.'},
              {k:'c',t:'Ganti semua kabel di ruangan',fb:'Terlalu luas untuk masalah yang hanya di satu PC.'}],
        ans:'a', why:'Periksa konfigurasi lokal dulu sebelum menguji ke luar.'},
    clue:'IP 192.168.10.25, mask 255.255.255.0, gateway 192.168.1.1. Router kantor memakai 192.168.10.1.',
    s2:{prompt:'Apa penyebab dan perbaikannya?',
-       opts:[{k:'a',t:'Gateway tidak satu subnet dengan PC: ubah ke 192.168.10.1'},
-             {k:'b',t:'Kabel rusak: ganti kabel',fb:'IP sudah terbaca, jadi koneksi fisik hidup.'},
-             {k:'c',t:'DNS salah: ganti DNS',fb:'DNS tidak bisa menolong kalau gateway tidak terjangkau.'}],
+       opts:[{k:'a',t:'Gateway salah subnet: ubah ke 192.168.10.1'},
+             {k:'b',t:'Kabel jaringan rusak: ganti kabel dan konektor RJ-45',fb:'IP sudah terbaca, jadi koneksi fisik hidup.'},
+             {k:'c',t:'DNS salah: ganti DNS ke server publik 8.8.8.8',fb:'DNS tidak bisa menolong kalau gateway tidak terjangkau.'}],
        ans:'a', why:'Gateway harus berada di subnet yang sama dengan PC.'}},
   {ctx:'Beberapa PC di satu ruangan tidak mendapat IP otomatis. PC yang sudah menyala sejak pagi masih normal.',
    s1:{prompt:'Uji apa yang paling masuk akal?',
-       opts:[{k:'a',t:'Cek status DHCP server dan jumlah alamat yang masih tersedia'},
-             {k:'b',t:'Instal ulang PC yang gagal',fb:'Banyak PC gagal sekaligus, jadi penyebabnya bukan di tiap PC.'},
-             {k:'c',t:'Ganti subnet mask semua PC',fb:'Mask bukan penyebab PC gagal mendapat IP.'}],
+       opts:[{k:'a',t:'Cek status DHCP server dan sisa alamat di pool'},
+             {k:'b',t:'Instal ulang PC yang gagal mendapat IP',fb:'Banyak PC gagal sekaligus, jadi penyebabnya bukan di tiap PC.'},
+             {k:'c',t:'Ganti subnet mask semua PC di ruangan',fb:'Mask bukan penyebab PC gagal mendapat IP.'}],
        ans:'a', why:'PC baru gagal, PC lama aman. Periksa layanan yang membagikan alamat.'},
    clue:'DHCP server aktif, tetapi seluruh 50 alamat di pool sudah terpakai.',
    s2:{prompt:'Apa tindakan yang tepat?',
-       opts:[{k:'a',t:'Perbesar pool DHCP atau perpendek masa sewa (lease)'},
-             {k:'b',t:'Matikan firewall',fb:'Tidak berkaitan dengan habisnya alamat.'},
-             {k:'c',t:'Ganti semua kabel',fb:'Kabel tidak membuat alamat DHCP habis.'}],
+       opts:[{k:'a',t:'Perbesar pool DHCP atau perpendek lease'},
+             {k:'b',t:'Matikan firewall di seluruh jaringan kantor',fb:'Tidak berkaitan dengan habisnya alamat.'},
+             {k:'c',t:'Ganti semua kabel dan konektor jaringan kantor',fb:'Kabel tidak membuat alamat DHCP habis.'}],
        ans:'a', why:'Pool yang habis perlu diperbesar atau dikelola lebih efisien.'}},
   {ctx:'Internet kantor lambat setiap sore. Pagi hari normal.',
    s1:{prompt:'Apa yang dilakukan lebih dulu?',
-       opts:[{k:'a',t:'Lihat grafik monitoring trafik (SNMP/MRTG) pada jam lambat'},
-             {k:'b',t:'Restart semua PC',fb:'Tidak menjawab kenapa lambatnya hanya sore hari.'},
+       opts:[{k:'a',t:'Lihat grafik monitoring trafik (MRTG) jam lambat'},
+             {k:'b',t:'Restart semua PC, switch, dan router di seluruh kantor',fb:'Tidak menjawab kenapa lambatnya hanya sore hari.'},
              {k:'c',t:'Langsung beli bandwidth lebih besar',fb:'Keputusan upgrade butuh data dulu.'}],
        ans:'a', why:'Monitoring memberi data trafik untuk menentukan penyebab (modul hal. 50-52).'},
    clue:'Utilisasi WAN mencapai sekitar 95% pada pukul 15.00 sampai 17.00.',
    s2:{prompt:'Tindakan yang paling tepat?',
-       opts:[{k:'a',t:'Lakukan capacity planning dan pertimbangkan upgrade'},
+       opts:[{k:'a',t:'Lakukan capacity planning dan upgrade'},
              {k:'b',t:'Abaikan karena masih dalam batas normal',fb:'95% sudah mendekati penuh, itu tanda perlu tindakan.'},
-             {k:'c',t:'Hapus log monitoring',fb:'Menghapus data justru menghilangkan bukti.'}],
+             {k:'c',t:'Hapus log monitoring supaya grafik terlihat bersih',fb:'Menghapus data justru menghilangkan bukti.'}],
        ans:'a', why:'Utilisasi yang mendekati penuh perlu perencanaan kapasitas.'}},
   {ctx:'Aplikasi web internal tiba-tiba tidak bisa diakses dari semua PC. Server dalam keadaan menyala.',
    s1:{prompt:'Uji apa yang paling dulu?',
-       opts:[{k:'a',t:'Uji berlapis: ping IP server, lalu cek koneksi ke port layanan'},
+       opts:[{k:'a',t:'Uji berlapis: ping IP server, lalu cek port'},
              {k:'b',t:'Instal ulang browser di semua PC',fb:'Semua PC gagal, jadi bukan masalah browser.'},
-             {k:'c',t:'Ganti server',fb:'Belum ada bukti server rusak.'}],
+             {k:'c',t:'Ganti server dengan unit cadangan lalu uji ulang',fb:'Belum ada bukti server rusak.'}],
        ans:'a', why:'Uji dari bawah ke atas untuk mempersempit letak masalah.'},
    clue:'Ping ke IP server berhasil, tetapi koneksi ke port 443 timeout. Kemarin ada perubahan aturan firewall.',
    s2:{prompt:'Apa penyebab dan tindak lanjutnya?',
-       opts:[{k:'a',t:'Aturan firewall untuk port 443 terblokir: perbaiki aturan, lalu catat perubahannya'},
-             {k:'b',t:'Subnet mask semua PC salah',fb:'Ping berhasil, jadi pengalamatan IP sudah benar.'},
-             {k:'c',t:'Kabel server rusak',fb:'Ping berhasil, jadi kabel baik.'}],
+       opts:[{k:'a',t:'Aturan firewall port 443 terblokir: perbaiki dan catat perubahan'},
+             {k:'b',t:'Subnet mask semua PC salah: samakan ke 255.255.255.0',fb:'Ping berhasil, jadi pengalamatan IP sudah benar.'},
+             {k:'c',t:'Kabel jaringan server rusak: ganti kabel dan port switch',fb:'Ping berhasil, jadi kabel baik.'}],
        ans:'a', why:'Ping jalan tetapi port tertutup mengarah ke aturan firewall.'}}
 ];
 var ORD = [
@@ -94,7 +94,7 @@ GAME = {
   start:function(level){
     if (level === 1) {
       var qs = shuffle(CASES1).slice(0, 3).map(function(c){
-        return {ctx:c.ctx, prompt:'Langkah pertama yang paling tepat?', opts:c.opts, ans:c.ans, why:c.why};
+        return {ctx:c.ctx, prompt:'Langkah pertama yang paling tepat?', opts:shuffle(c.opts), ans:c.ans, why:c.why};
       });
       runQuiz({level:1, title:levelTitle(1), qs:qs,
         finish:function(score, total){
@@ -104,8 +104,8 @@ GAME = {
     } else if (level === 2) {
       var qs2 = [];
       shuffle(CASES2).slice(0, 3).forEach(function(c){
-        qs2.push({ctx:c.ctx, prompt:c.s1.prompt, opts:c.s1.opts, ans:c.s1.ans, why:c.s1.why});
-        qs2.push({ctx:c.ctx, clue:c.clue, cluelabel:'Hasil pengujian', prompt:c.s2.prompt, opts:c.s2.opts, ans:c.s2.ans, why:c.s2.why});
+        qs2.push({ctx:c.ctx, prompt:c.s1.prompt, opts:shuffle(c.s1.opts), ans:c.s1.ans, why:c.s1.why});
+        qs2.push({ctx:c.ctx, clue:c.clue, cluelabel:'Hasil pengujian', prompt:c.s2.prompt, opts:shuffle(c.s2.opts), ans:c.s2.ans, why:c.s2.why});
       });
       runQuiz({level:2, title:levelTitle(2), qs:qs2,
         finish:function(score, total){
