@@ -73,6 +73,11 @@ var HOOK = '<script>(function(){var o=showResult;showResult=function(r){try{pare
 
 var app = document.getElementById('app'), play = document.getElementById('play'), frame = document.getElementById('frame');
 var player = null, current = null;
+/* Kelas dari link: ?kelas=A, ?kelas=B, ?kelas=C ... (bebas, tanpa edit kode). Tanpa parameter = '-' */
+var KELAS = (function(){
+  try { var k = new URLSearchParams(location.search).get('kelas') || ''; k = k.replace(/[^A-Za-z0-9 _-]/g,'').replace(/\s+/g,' ').trim().toUpperCase().slice(0,20); return k || '-'; }
+  catch(e){ return '-'; }
+})();
 var LS = {
   get:function(k,d){ try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
   set:function(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
@@ -98,7 +103,7 @@ function flush(){
     .catch(function(){ syncState = 'fail'; render(); });
 }
 function record(r){
-  var row = {id:Date.now() + '-' + Math.random().toString(36).slice(2,7), waktu:new Date().toISOString(), nama:player,
+  var row = {id:Date.now() + '-' + Math.random().toString(36).slice(2,7), waktu:new Date().toISOString(), nama:player, kelas:KELAS,
     game:current.title, tema:current.tema, level:r.level, bintang:r.stars, hasil:r.title, detail:r.stats};
   log.push(row); queue.push(row);
   LS.set('pk_log', log); LS.set('pk_queue', queue);
@@ -112,7 +117,7 @@ window.addEventListener('message', function(e){
 /* ---------- progres pemain (bintang terbaik per game/level) ---------- */
 function best(gk){
   var b = {1:0,2:0,3:0};
-  log.forEach(function(r){ if (r.nama === player && r.game === gameByKey(gk).title && r.bintang > (b[r.level]||0)) b[r.level] = r.bintang; });
+  log.forEach(function(r){ if (r.nama === player && (r.kelas || '-') === KELAS && r.game === gameByKey(gk).title && r.bintang > (b[r.level]||0)) b[r.level] = r.bintang; });
   return b;
 }
 function starsHTML(n){ var s = ''; for (var i=1;i<=3;i++) s += i<=n ? '★' : '<span class="off">★</span>'; return '<span class="stars">' + s + '</span>'; }
@@ -121,7 +126,7 @@ function totalStars(){ return GAMES.reduce(function(t,g){ var b = best(g.key); r
 /* ---------- tampilan ---------- */
 function render(){
   if (!player) return renderLogin();
-  var h = '<div class="top"><span class="who">👤 ' + esc(player) + '</span><span class="chip">⭐ ' + totalStars() + ' / ' + (GAMES.length*9) + '</span></div>';
+  var h = '<div class="top"><span class="who">👤 ' + esc(player) + (KELAS !== '-' ? ' · Kelas ' + esc(KELAS) : '') + '</span><span class="chip">⭐ ' + totalStars() + ' / ' + (GAMES.length*9) + '</span></div>';
   var st = !SHEET_URL ? '<b class="bad">Google Sheet belum dikonfigurasi</b>, hasil hanya tersimpan di perangkat ini.' :
     syncState === 'sending' ? 'Mengirim rekap ke Google Sheet...' :
     queue.length ? '<b class="bad">' + queue.length + ' hasil belum terkirim.</b> <a href="#" id="retry">Kirim ulang</a>' :
@@ -144,7 +149,7 @@ function render(){
   var rt = document.getElementById('retry'); if (rt) rt.onclick = function(ev){ ev.preventDefault(); flush(); };
 }
 function renderLogin(){
-  app.innerHTML = '<div class="hero"><h1>Game Prakom</h1><p>6 game, 3 level. Sisjarkom dan Manajemen TI.</p></div>' +
+  app.innerHTML = '<div class="hero"><h1>Game Prakom</h1><p>6 game, 3 level. Sisjarkom dan Manajemen TI.' + (KELAS !== '-' ? ' <b>Kelas ' + esc(KELAS) + '</b>' : '') + '</p></div>' +
     '<form class="card" id="f"><label for="nm">Nama kamu</label><input type="text" id="nm" maxlength="60" autocomplete="name" placeholder="Nama lengkap" value="' + esc(LS.get('pk_lastname','')) + '">' +
     '<p class="err" id="er"></p><button class="btn full" type="submit">Mulai</button></form>';
   var nm = document.getElementById('nm'); nm.focus();
@@ -158,7 +163,7 @@ function renderLogin(){
   };
 }
 function renderRekap(){
-  var mine = log.filter(function(r){ return r.nama === player; }).slice().reverse();
+  var mine = log.filter(function(r){ return r.nama === player && (r.kelas || '-') === KELAS; }).slice().reverse();
   var h = '<div class="top"><h2>Rekap ' + esc(player) + '</h2><button class="btn alt" id="bk">&larr; Kembali</button></div><div class="card">';
   if (!mine.length) h += '<p>Belum ada hasil. Selesaikan satu level dulu.</p>';
   else {
@@ -170,9 +175,9 @@ function renderRekap(){
   document.getElementById('bk').onclick = render;
 }
 function downloadCSV(){
-  var cols = ['waktu','nama','game','tema','level','bintang','hasil','detail'];
+  var cols = ['waktu','kelas','nama','game','tema','level','bintang','hasil','detail'];
   var rows = [cols.join(',')].concat(log.map(function(r){
-    return cols.map(function(c){ var v = String(r[c] == null ? '' : r[c]); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g,'""') + '"'; }).join(',');
+    return cols.map(function(c){ var v = String(r[c] == null ? (c === 'kelas' ? '-' : '') : r[c]); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g,'""') + '"'; }).join(',');
   }));
   var a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob(['﻿' + rows.join('\n')], {type:'text/csv'}));

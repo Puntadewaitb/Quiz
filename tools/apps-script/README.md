@@ -17,3 +17,11 @@ Tab `Rekap` = papan peringkat per orang, dihitung ulang otomatis setiap ada hasi
 - Urutan: total poin, lalu percobaan paling sedikit, lalu yang selesai paling awal.
 
 Ubah aturan: edit konstanta di atas `Code.gs`, **Deploy > Manage deployments > pensil > New version > Deploy** (URL tetap), lalu jalankan `setup` untuk hitung ulang data lama.
+
+## Banyak kelas, satu Sheet
+Kelas ditentukan oleh link, tanpa edit kode: `.../Quiz/?kelas=A`, `?kelas=B`, `?kelas=C`, dst.
+- Kode kelas: huruf/angka/spasi/`_`/`-`, otomatis huruf besar, maks 20 karakter. Tanpa `?kelas=` = kelas `-`.
+- `Log` punya kolom **Kelas** (kolom J). Nama yang sama di kelas berbeda dihitung orang berbeda.
+- Tab `Rekap` = peringkat gabungan (ada kolom Kelas). Tab `Rekap A`, `Rekap B`, ... dibuat otomatis untuk tiap kelas yang punya data.
+- Data lama tanpa kelas masuk ke kelas `-` (hanya tampil di tab `Rekap` gabungan).
+- Setelah menempel `Code.gs` baru: jalankan `setup` sekali (menambah header Kelas di sheet lama), lalu Deploy > Manage deployments > pensil > New version > Deploy.

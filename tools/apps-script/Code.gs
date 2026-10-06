@@ -7,14 +7,15 @@ var BONUS_SEKALI_JALAN = 5;  // percobaan pertama langsung 3 bintang
 var PENALTI_ULANG = 1;       // per percobaan setelah yang pertama (per game+level)
 var GAME_LIST = ['Susun Kabel UTP', 'Sortir OSI', 'Detektif Jaringan', 'Mini Packet Tracer', 'Urutan Pengadaan', 'Sortir Lifecycle'];
 
-/** Hitung skor per orang dari baris Log [waktu,nama,game,tema,level,bintang,...]. Fungsi murni. */
+/** Hitung skor per orang per kelas dari baris Log [waktu,nama,game,tema,level,bintang,hasil,detail,id,kelas]. Fungsi murni. */
 function hitungSkor_(rows) {
   var by = {};
   rows.forEach(function (r) {
     var nama = String(r[1]).trim();
     if (!nama) return;
-    var key = nama.toLowerCase();
-    var p = by[key] || (by[key] = {nama: nama, lv: {}, tries: 0, last: 0});
+    var kelas = kelas_(r[9]);
+    var key = kelas + '|' + nama.toLowerCase();
+    var p = by[key] || (by[key] = {nama: nama, kelas: kelas, lv: {}, tries: 0, last: 0});
     var lk = r[2] + '|' + r[4];
     var l = p.lv[lk] || (p.lv[lk] = {game: r[2], n: 0, best: 0, first: null});
     l.n++; p.tries++;
@@ -35,34 +36,44 @@ function hitungSkor_(rows) {
       perGame[l.game] = (perGame[l.game] || 0) + l.best;
     });
     var poinBintang = stars * POIN_PER_BINTANG, penalti = ulang * PENALTI_ULANG;
-    return {nama: p.nama, selesai: selesai, stars: stars, tries: p.tries, poinBintang: poinBintang,
+    return {nama: p.nama, kelas: p.kelas, selesai: selesai, stars: stars, tries: p.tries, poinBintang: poinBintang,
       bonus: bonus, penalti: penalti, total: Math.max(0, poinBintang + bonus - penalti), last: p.last, perGame: perGame};
   });
   out.sort(function (a, b) { return b.total - a.total || a.tries - b.tries || a.last - b.last; });
   return out;
 }
 
-/** Tulis ulang sheet Rekap (papan peringkat). */
-function buatRekap_() {
+/** Tulis satu tab peringkat. denganKelas=true untuk tab gabungan (ada kolom Kelas). */
+function tulisRekap_(namaTab, skor, denganKelas) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var log = getLog_();
-  var data = log.getLastRow() > 1 ? log.getRange(2, 1, log.getLastRow() - 1, 8).getValues() : [];
-  var skor = hitungSkor_(data);
-  var sh = ss.getSheetByName('Rekap') || ss.insertSheet('Rekap');
+  var sh = ss.getSheetByName(namaTab) || ss.insertSheet(namaTab);
   sh.clear();
-  var head = ['Peringkat', 'Nama', 'Total Poin', 'Level Selesai', 'Total Bintang (terbaik)', 'Percobaan', 'Poin Bintang', 'Bonus', 'Penalti']
-    .concat(GAME_LIST.map(function (g) { return 'Bintang: ' + g; })).concat(['Terakhir Main']);
+  var head = ['Peringkat'].concat(denganKelas ? ['Kelas'] : [], ['Nama', 'Total Poin', 'Level Selesai', 'Total Bintang (terbaik)', 'Percobaan', 'Poin Bintang', 'Bonus', 'Penalti'],
+    GAME_LIST.map(function (g) { return 'Bintang: ' + g; }), ['Terakhir Main']);
   var rows = skor.map(function (s, i) {
-    return [i + 1, s.nama, s.total, s.selesai, s.stars, s.tries, s.poinBintang, s.bonus, -s.penalti]
-      .concat(GAME_LIST.map(function (g) { return s.perGame[g]; })).concat([s.last ? new Date(s.last) : '']);
+    return [i + 1].concat(denganKelas ? [s.kelas] : [], [s.nama, s.total, s.selesai, s.stars, s.tries, s.poinBintang, s.bonus, -s.penalti],
+      GAME_LIST.map(function (g) { return s.perGame[g]; }), [s.last ? new Date(s.last) : '']);
   });
   sh.getRange(1, 1, 1, head.length).setValues([head]).setFontWeight('bold').setBackground('#FCDDC2');
   if (rows.length) {
     sh.getRange(2, 1, rows.length, head.length).setValues(rows);
     sh.getRange(2, head.length, rows.length, 1).setNumberFormat('dd/MM/yyyy HH:mm');
   }
-  sh.setFrozenRows(1); sh.setFrozenColumns(2);
+  sh.setFrozenRows(1); sh.setFrozenColumns(denganKelas ? 3 : 2);
   sh.autoResizeColumns(1, head.length);
+}
+
+/** Tab "Rekap" = gabungan semua kelas; tab "Rekap <KELAS>" dibuat otomatis untuk tiap kelas (kecuali '-'). */
+function buatRekap_() {
+  var log = getLog_();
+  var data = log.getLastRow() > 1 ? log.getRange(2, 1, log.getLastRow() - 1, 10).getValues() : [];
+  var semua = hitungSkor_(data);
+  tulisRekap_('Rekap', semua, true);
+  var kelasAda = {};
+  semua.forEach(function (s) { if (s.kelas !== '-') kelasAda[s.kelas] = 1; });
+  Object.keys(kelasAda).sort().forEach(function (k) {
+    tulisRekap_('Rekap ' + k, semua.filter(function (s) { return s.kelas === k; }), false);   // urutan sudah per skor
+  });
 }
 
 function doPost(e) {
@@ -76,10 +87,10 @@ function doPost(e) {
     var rows = [];
     (body.rows || []).forEach(function (r) {
       if (!r.id || seen[r.id]) return;                       // dedup kalau client kirim ulang
-      rows.push([new Date(r.waktu), clean_(r.nama), clean_(r.game), clean_(r.tema), Number(r.level), Number(r.bintang), clean_(r.hasil), clean_(r.detail), r.id]);
+      rows.push([new Date(r.waktu), clean_(r.nama), clean_(r.game), clean_(r.tema), Number(r.level), Number(r.bintang), clean_(r.hasil), clean_(r.detail), r.id, kelas_(r.kelas)]);
     });
     if (rows.length) {
-      sh.getRange(sh.getLastRow() + 1, 1, rows.length, 9).setValues(rows);
+      sh.getRange(sh.getLastRow() + 1, 1, rows.length, 10).setValues(rows);
       buatRekap_();
     }
     return ContentService.createTextOutput(JSON.stringify({ok: true, added: rows.length})).setMimeType(ContentService.MimeType.JSON);
@@ -91,14 +102,18 @@ function doGet() { return ContentService.createTextOutput('Game Prakom endpoint 
 // cegah formula injection di Sheet
 function clean_(v) { v = String(v == null ? '' : v).slice(0, 300); return /^[=+\-@]/.test(v) ? "'" + v : v; }
 
+// kode kelas: huruf/angka/spasi/_/- saja (aman dipakai sebagai nama tab), huruf besar, maks 20
+function kelas_(v) { v = String(v == null ? '' : v).replace(/[^A-Za-z0-9 _-]/g, '').replace(/\s+/g, ' ').trim().toUpperCase().slice(0, 20); return v || '-'; }
+
 function getLog_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName('Log');
   if (!sh) {
     sh = ss.insertSheet('Log');
-    sh.getRange(1, 1, 1, 9).setValues([HEADERS.concat(['ID'])]).setFontWeight('bold');
+    sh.getRange(1, 1, 1, 10).setValues([HEADERS.concat(['ID', 'Kelas'])]).setFontWeight('bold');
     sh.setFrozenRows(1);
   }
+  if (sh.getRange(1, 10).getValue() !== 'Kelas') sh.getRange(1, 10).setValue('Kelas').setFontWeight('bold');   // sheet lama
   return sh;
 }
 
