@@ -97,7 +97,93 @@ function doPost(e) {
   } finally { lock.releaseLock(); }
 }
 
-function doGet() { return ContentService.createTextOutput('Game Prakom endpoint aktif'); }
+// ===================== Endpoint baca (GET) =====================
+// ?action=top&kelas=A&nama=Budi&callback=cb   -> Top 5 kelas (publik, tanpa token)
+// ?action=admin&token=XXXX&callback=cb        -> data lengkap (butuh ADMIN_TOKEN di Script Properties)
+// Tanpa action -> teks penanda endpoint aktif.
+function doGet(e) {
+  var p = (e && e.parameter) || {};
+  if (!p.action) return ContentService.createTextOutput('Game Prakom endpoint aktif');
+  try {
+    if (p.action === 'top') return jsonOut_(topKelas_(kelas_(p.kelas), p.nama), p.callback);
+    if (p.action === 'admin') return jsonOut_(dataAdmin_(p.token), p.callback);
+    return jsonOut_({ok: false, error: 'aksi_tidak_dikenal'}, p.callback);
+  } catch (err) {
+    return jsonOut_({ok: false, error: 'server_error'}, p.callback);   // detail error sengaja tidak dibocorkan
+  }
+}
+
+// JSONP (callback harus nama fungsi JS yang aman) agar bisa dipanggil dari halaman di GitHub Pages tanpa masalah CORS
+function jsonOut_(obj, cb) {
+  var s = JSON.stringify(obj).replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+  if (cb && /^[A-Za-z_][A-Za-z0-9_]{0,40}$/.test(cb)) {
+    return ContentService.createTextOutput(cb + '(' + s + ');').setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService.createTextOutput(s).setMimeType(ContentService.MimeType.JSON);
+}
+
+function bacaLog_() {
+  var log = getLog_();
+  return log.getLastRow() > 1 ? log.getRange(2, 1, log.getLastRow() - 1, 10).getValues() : [];
+}
+
+/** Top 5 satu kelas + posisi pemain (opsional). Di-cache 30 detik agar tidak membebani kuota saat banyak yang menekan tombol. */
+function topKelas_(kelas, nama) {
+  var cache = CacheService.getScriptCache(), key = 'top|' + kelas, d = null;
+  try { var c = cache.get(key); if (c) d = JSON.parse(c); } catch (err) {}
+  if (!d) {
+    var list = hitungSkor_(bacaLog_()).filter(function (s) { return s.kelas === kelas; });
+    d = {
+      top: list.slice(0, 5).map(function (s, i) { return ringkas_(s, i + 1); }),
+      all: list.map(function (s) { return [s.nama.toLowerCase(), s.total]; }),
+      peserta: list.length, diperbarui: new Date().toISOString()
+    };
+    try { cache.put(key, JSON.stringify(d), 30); } catch (err) {}   // gagal cache (terlalu besar) tidak masalah
+  }
+  var saya = null, q = String(nama || '').trim().toLowerCase();
+  if (q) for (var i = 0; i < d.all.length; i++) if (d.all[i][0] === q) { saya = {rank: i + 1, poin: d.all[i][1]}; break; }
+  return {ok: true, kelas: kelas, top: d.top, peserta: d.peserta, saya: saya, diperbarui: d.diperbarui};
+}
+
+function ringkas_(s, rank) {
+  return {rank: rank, nama: s.nama, kelas: s.kelas, poin: s.total, bintang: s.stars, selesai: s.selesai, percobaan: s.tries};
+}
+
+function samaToken_(a, b) {   // perbandingan waktu-konstan
+  a = String(a || ''); b = String(b || '');
+  var r = a.length ^ b.length;
+  for (var i = 0; i < Math.max(a.length, b.length); i++) r |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
+  return r === 0;
+}
+
+/** Data lengkap untuk halaman /admin. Wajib token. */
+function dataAdmin_(token) {
+  var t = PropertiesService.getScriptProperties().getProperty('ADMIN_TOKEN');
+  if (!t) return {ok: false, error: 'admin_belum_diatur'};
+  if (t.length < 12) return {ok: false, error: 'token_terlalu_pendek'};
+  if (!samaToken_(token, t)) return {ok: false, error: 'token_salah'};
+  var data = bacaLog_();
+  var skor = hitungSkor_(data), kelasAda = {};
+  var peserta = skor.map(function (s, i) {
+    kelasAda[s.kelas] = 1;
+    var o = ringkas_(s, i + 1);
+    o.bonus = s.bonus; o.penalti = s.penalti; o.perGame = s.perGame; o.terakhir = s.last ? new Date(s.last).toISOString() : '';
+    return o;
+  });
+  var terbaru = data.slice(-30).reverse().map(function (r) {
+    return {waktu: r[0] instanceof Date ? r[0].toISOString() : '', nama: r[1], game: r[2], level: r[4], bintang: r[5], kelas: kelas_(r[9])};
+  });
+  return {ok: true, diperbarui: new Date().toISOString(), games: GAME_LIST, kelas: Object.keys(kelasAda).sort(),
+    ringkasan: {peserta: skor.length, hasil: data.length, kelas: Object.keys(kelasAda).length}, peserta: peserta, terbaru: terbaru};
+}
+
+/** Jalankan SEKALI (manual) untuk membuat token admin acak. Token muncul di Execution log; simpan di tempat aman. */
+function buatTokenAdmin() {
+  var t = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '').slice(0, 28);
+  PropertiesService.getScriptProperties().setProperty('ADMIN_TOKEN', t);
+  Logger.log('TOKEN ADMIN: ' + t);
+  return t;
+}
 
 // cegah formula injection di Sheet
 function clean_(v) { v = String(v == null ? '' : v).slice(0, 300); return /^[=+\-@]/.test(v) ? "'" + v : v; }

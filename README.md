@@ -7,3 +7,5 @@
 - Tanpa `SHEET_URL`, hasil tetap tersimpan di browser dan bisa diunduh sebagai CSV.
 
 Kelas: bagikan link `?kelas=A`, `?kelas=B`, dst. Rekap per kelas otomatis di Google Sheet (lihat `tools/apps-script/README.md`).
+
+Papan Peringkat (Top 5 per kelas) ada di aplikasi; halaman admin di `/admin/` memakai token dari `buatTokenAdmin` (lihat `tools/apps-script/README.md`).
