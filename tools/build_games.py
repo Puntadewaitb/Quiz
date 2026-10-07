@@ -8,7 +8,9 @@ games=[('osi','Sortir OSI','sortir-osi.html','osi.js',''),
        ('pengadaan','Urutan Pengadaan','urutan-pengadaan.html','pengadaan.js',''),
        ('lifecycle','Sortir Lifecycle','sortir-lifecycle.html','lifecycle.js',''),
        ('detektif','Detektif Jaringan','detektif-jaringan.html','detektif.js',''),
-       ('tracer','Mini Packet Tracer','mini-packet-tracer.html','tracer.js',tcss)]
+       ('tracer','Mini Packet Tracer','mini-packet-tracer.html','tracer.js',tcss),
+       ('kepatuhan','Kepatuhan dan Kematangan','kepatuhan-kematangan.html','kepatuhan.js',''),
+       ('komponencloud','Komponen dan Cloud','komponen-cloud.html','komponencloud.js','')]
 for key,title,fn,js,extra in games:
     g=open('games-src/'+js).read()
     html=f'''<!DOCTYPE html>

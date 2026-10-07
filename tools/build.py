@@ -2,7 +2,8 @@
 import json, sys, os
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 files = {'kabel':'susun-kabel-utp','osi':'sortir-osi','detektif':'detektif-jaringan',
-         'tracer':'mini-packet-tracer','pengadaan':'urutan-pengadaan','lifecycle':'sortir-lifecycle'}
+         'tracer':'mini-packet-tracer','pengadaan':'urutan-pengadaan','lifecycle':'sortir-lifecycle',
+         'kepatuhan':'kepatuhan-kematangan','komponencloud':'komponen-cloud'}
 out = open(os.path.join(root,'tools/shell.html'), encoding='utf-8').read()
 for k, f in files.items():
     h = open(os.path.join(root,'games',f+'.html'), encoding='utf-8').read()

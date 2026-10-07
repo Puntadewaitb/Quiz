@@ -39,6 +39,7 @@ input[type=text]{width:100%;border:2px solid var(--line);background:var(--bg);bo
 .g:hover{border-color:var(--accent)}
 .g .em{font-size:30px;width:46px;height:46px;display:grid;place-items:center;background:var(--peach);border-radius:50%}
 .g h2{font-size:17px} .g p{margin:3px 0 0;color:var(--muted);font-size:14px}
+.g p.sl{font-size:12px;font-weight:700;opacity:.85}
 .stars{color:var(--accent-2);letter-spacing:2px;font-size:17px;white-space:nowrap}
 .stars .off{color:var(--line)}
 .row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
@@ -92,8 +93,10 @@ var GAMES = [
   {key:'osi', title:'Sortir OSI', emoji:'🧱', tema:'Sisjarkom', desc:'Kelompokkan protokol dan perangkat ke 7 layer OSI.', html:__G_osi__},
   {key:'detektif', title:'Detektif Jaringan', emoji:'🕵️', tema:'Sisjarkom', desc:'Troubleshooting jaringan langkah demi langkah.', html:__G_detektif__},
   {key:'tracer', title:'Mini Packet Tracer', emoji:'🖧', tema:'Sisjarkom', desc:'Konfigurasi dan perbaiki jaringan mini.', html:__G_tracer__},
-  {key:'pengadaan', title:'Urutan Pengadaan', emoji:'📋', tema:'Man TI', desc:'Susun tahapan pengadaan TI dengan benar.', html:__G_pengadaan__},
-  {key:'lifecycle', title:'Sortir Lifecycle', emoji:'♻️', tema:'Man TI', desc:'Kelompokkan kegiatan ke fase lifecycle aset TI.', html:__G_lifecycle__}
+  {key:'komponencloud', title:'Komponen dan Cloud', emoji:'☁️', tema:'Man TI', slide:'5-19', desc:'Komponen infrastruktur TI, model layanan dan deployment cloud.', html:__G_komponencloud__},
+  {key:'lifecycle', title:'Sortir Lifecycle', emoji:'♻️', tema:'Man TI', slide:'20-21', desc:'Kelompokkan kegiatan ke fase lifecycle aset TI.', html:__G_lifecycle__},
+  {key:'pengadaan', title:'Urutan Pengadaan', emoji:'📋', tema:'Man TI', slide:'32-33', desc:'Susun tahapan pengadaan TI dengan benar.', html:__G_pengadaan__},
+  {key:'kepatuhan', title:'Kepatuhan dan Kematangan', emoji:'✅', tema:'Man TI', slide:'63-70', desc:'Skor kepatuhan, tingkat kematangan, dan kasus audit.', html:__G_kepatuhan__}
 ];
 var HOOK = '<script>(function(){var o=showResult;showResult=function(r){try{parent.postMessage({quizResult:1,level:r.level,stars:r.stars,title:String(r.title||"").replace(/<[^>]*>/g,""),stats:(r.stats||[]).join("; ")},"*")}catch(e){}return o(r)}})();<\/script>';
 
@@ -164,7 +167,7 @@ function render(){
   GAMES.forEach(function(g){
     if (g.tema !== tema) { tema = g.tema; h += '</div><div class="tema">' + esc(tema) + '</div><div class="games">'; }
     var b = best(g.key), mx = Math.max(b[1],b[2],b[3]);
-    h += '<button class="g" data-k="' + g.key + '"><span class="em">' + g.emoji + '</span><span><h2>' + g.title + '</h2><p>' + g.desc + '</p></span>' +
+    h += '<button class="g" data-k="' + g.key + '"><span class="em">' + g.emoji + '</span><span><h2>' + g.title + '</h2><p>' + g.desc + '</p>' + (g.slide ? '<p class="sl">Slide hal. ' + g.slide + '</p>' : '') + '</span>' +
          '<span>' + starsHTML(b[1]+b[2]+b[3] ? Math.round((b[1]+b[2]+b[3])/3) : 0) + '</span></button>';
   });
   h += '</div><div class="row"><button class="btn alt" id="rekap">Rekap saya</button><button class="btn alt" id="csv">Unduh CSV</button><button class="btn alt" id="out">Ganti pemain</button></div>';
