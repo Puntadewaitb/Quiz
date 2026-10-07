@@ -26,9 +26,8 @@ Kelas ditentukan oleh link, tanpa edit kode: `.../Quiz/?kelas=A`, `?kelas=B`, `?
 - Data lama tanpa kelas masuk ke kelas `-` (hanya tampil di tab `Rekap` gabungan).
 - Setelah menempel `Code.gs` baru: jalankan `setup` sekali (menambah header Kelas di sheet lama), lalu Deploy > Manage deployments > pensil > New version > Deploy.
 
-## Papan Peringkat & halaman /admin
-- Di aplikasi: tombol **Papan Peringkat** menampilkan Top 5 kelas (podium + avatar karakter). Data baru diambil saat peserta menekan **Tarik data** (jeda 8 detik antar tarikan, respons di-cache server 30 detik).
-- Endpoint publik `?action=top&kelas=A&nama=...` hanya mengembalikan Top 5 dan posisi pemain di kelasnya.
-- Halaman admin: `https://puntadewaitb.github.io/Quiz/admin/` (tidak diindeks mesin pencari). Isinya: peringkat semua kelas atau per kelas, rincian bintang per game, aktivitas terbaru, unduh CSV.
+## Halaman /admin
+- Peringkat hanya bisa dilihat di halaman admin: `https://puntadewaitb.github.io/Quiz/admin/` (tidak diindeks mesin pencari). Halaman peserta tidak menampilkan papan peringkat.
+- Isi admin: peringkat semua kelas atau per kelas, rincian bintang per game, aktivitas terbaru, unduh CSV.
 - **Token admin** (dicek di server, bukan di halaman): di Apps Script jalankan fungsi `buatTokenAdmin` sekali, lalu ambil token dari **Execution log**. Ganti token = jalankan fungsi itu lagi. Tanpa token, endpoint admin menolak semua permintaan.
-- Setelah menempel `Code.gs` baru: Save, jalankan `buatTokenAdmin`, lalu Deploy > Manage deployments > pensil > New version > Deploy.
+- Setelah menempel `Code.gs` baru: Save, jalankan `setup`, lalu Deploy > Manage deployments > pensil > New version > Deploy.

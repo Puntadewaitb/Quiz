@@ -49,32 +49,6 @@ input[type=text]{width:100%;border:2px solid var(--line);background:var(--bg);bo
 #play .pb b{flex:1;font-family:Montserrat,Arial,sans-serif;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #play iframe{flex:1;width:100%;border:0}
 .hidden{display:none!important}
-.lbbtn{margin-top:14px;border-color:var(--accent-2);background:linear-gradient(90deg,var(--card),var(--peach))}
-.av{display:inline-grid;place-items:center;border-radius:50%;line-height:1;flex:none;border:3px solid var(--card);box-shadow:0 2px 0 rgba(0,0,0,.12)}
-.lbtitle{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 10px}
-.lbtitle h2{font-size:19px}
-.lbmeta{color:var(--muted);font-size:13px;margin:6px 0 0}
-.lbact{display:flex;gap:10px;align-items:center;margin-top:12px}
-.lbact .btn{flex:1}
-.podium{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:18px 0 8px;min-height:230px}
-.pcol{flex:1;max-width:150px;min-width:0;text-align:center;display:flex;flex-direction:column;align-items:center}
-.pcol .crown{font-size:26px;height:30px;line-height:30px;animation:bob 1.6s ease-in-out infinite}
-.pcol .nm{font-weight:800;font-size:14px;margin:6px 0 2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pcol .pt{font-weight:800;font-size:13px;background:var(--peach);border-radius:999px;padding:2px 10px;margin-bottom:6px}
-.pcol .blk{width:100%;border-radius:12px 12px 0 0;display:grid;place-items:start center;padding-top:8px;font:800 26px Montserrat,Arial,sans-serif;color:#182255}
-.pcol.p1 .blk{height:110px;background:#FEBD26}.pcol.p2 .blk{height:80px;background:#C9D1E6}.pcol.p3 .blk{height:60px;background:#E8A06A}
-.pcol{animation:pop .45s both}.pcol.p1{animation-delay:.25s}.pcol.p2{animation-delay:.1s}.pcol.p3{animation-delay:0s}
-.rows{display:grid;gap:8px;margin-top:6px}
-.rrow{display:grid;grid-template-columns:34px auto 1fr auto;gap:10px;align-items:center;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:8px 12px}
-.rrow .rk{font:800 16px Montserrat,Arial,sans-serif;text-align:center}
-.rrow .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rrow .pt{font-weight:800}
-.me{outline:3px solid var(--accent-2)}
-.saya{margin-top:12px;background:var(--peach);border-radius:14px;padding:10px 14px;font-weight:700}
-.kosong{text-align:center;color:var(--muted);padding:26px 8px}
-@keyframes pop{from{transform:translateY(24px) scale(.9);opacity:0}to{transform:none;opacity:1}}
-@keyframes bob{50%{transform:translateY(-5px)}}
-@media (prefers-reduced-motion:reduce){.pcol,.pcol .crown{animation:none}}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
 th{color:var(--muted);font-size:12px;text-transform:uppercase}
@@ -161,7 +135,6 @@ function render(){
     queue.length ? '<b class="bad">' + queue.length + ' hasil belum terkirim.</b> <a href="#" id="retry">Kirim ulang</a>' :
     '<b class="ok">Rekap tersinkron ke Google Sheet.</b>';
   h += '<p class="sync">' + st + '</p>';
-  h += '<button class="g lbbtn" id="lb"><span class="em">🏆</span><span><h2>Papan Peringkat</h2><p>' + (KELAS !== '-' ? 'Top 5 Kelas ' + esc(KELAS) : 'Top 5 peserta') + '</p></span><span></span></button>';
   var tema = '';
   h += '<div class="games">';
   GAMES.forEach(function(g){
@@ -173,7 +146,6 @@ function render(){
   h += '</div><div class="row"><button class="btn alt" id="rekap">Rekap saya</button><button class="btn alt" id="csv">Unduh CSV</button><button class="btn alt" id="out">Ganti pemain</button></div>';
   app.innerHTML = h;
   Array.prototype.forEach.call(app.querySelectorAll('.g[data-k]'), function(b){ b.onclick = function(){ open(b.dataset.k); }; });
-  document.getElementById('lb').onclick = function(){ renderLB(); };
   document.getElementById('rekap').onclick = renderRekap;
   document.getElementById('csv').onclick = downloadCSV;
   document.getElementById('out').onclick = function(){ player = null; try{ sessionStorage.removeItem('pk_player'); }catch(e){} render(); };
@@ -213,82 +185,6 @@ function downloadCSV(){
   var a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob(['﻿' + rows.join('\n')], {type:'text/csv'}));
   a.download = 'rekap-game-prakom.csv'; document.body.appendChild(a); a.click(); a.remove();
-}
-
-/* ---------- avatar karakter (deterministik dari nama, konsisten di semua layar) ---------- */
-var AVATARS = ['🦊','🐼','🐯','🦁','🐸','🐙','🦄','🐲','🦉','🐧','🐨','🐵','🐰','🐻','🦖','🐳'];
-var AVBG = ['#FCDDC2','#CDEFE0','#D9E0FF','#FFD6E2','#FFF0B8','#E4D9FF','#CFEFFA','#FAD0D0'];
-function avatar(nama, px){
-  var h = 5381, t = String(nama).trim().toLowerCase();
-  for (var i=0;i<t.length;i++) h = ((h << 5) + h + t.charCodeAt(i)) >>> 0;
-  return '<span class="av" style="width:' + px + 'px;height:' + px + 'px;font-size:' + Math.round(px*.58) + 'px;background:' + AVBG[(h >>> 4) % AVBG.length] + '" aria-hidden="true">' + AVATARS[h % AVATARS.length] + '</span>';
-}
-
-/* ---------- baca data dari Google Sheet via JSONP (tanpa masalah CORS) ---------- */
-function jsonp(params, ms){
-  return new Promise(function(resolve, reject){
-    if (!SHEET_URL) return reject(new Error('belum_dikonfigurasi'));
-    var cb = '__pk' + Date.now() + Math.floor(Math.random()*1e4), sc = document.createElement('script'), done = false;
-    function end(){ done = true; clearTimeout(tm); try{ delete window[cb]; }catch(e){ window[cb] = undefined; } sc.remove(); }
-    var tm = setTimeout(function(){ if (!done){ end(); reject(new Error('timeout')); } }, ms || 12000);
-    window[cb] = function(d){ if (!done){ end(); resolve(d); } };
-    sc.onerror = function(){ if (!done){ end(); reject(new Error('gagal')); } };
-    var q = Object.keys(params).map(function(k){ return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
-    sc.src = SHEET_URL + (SHEET_URL.indexOf('?') < 0 ? '?' : '&') + q + '&callback=' + cb;
-    document.head.appendChild(sc);
-  });
-}
-
-/* ---------- Papan Peringkat (Top 5 kelas) ---------- */
-var lbBusy = false, lbLast = 0;
-function lbKey(){ return 'pk_lb_' + KELAS; }
-function podCol(r, cls, crown){
-  return '<div class="pcol ' + cls + '">' + (crown ? '<div class="crown" aria-hidden="true">👑</div>' : '<div class="crown"></div>') + avatar(r.nama, crown ? 68 : 56) +
-    '<div class="nm" title="' + esc(r.nama) + '">' + esc(r.nama) + '</div><div class="pt">' + r.poin + ' poin</div><div class="blk">' + r.rank + '</div></div>';
-}
-function renderLB(msg){
-  var c = LS.get(lbKey(), null), d = c && c.data;
-  var judul = KELAS !== '-' ? 'Kelas ' + esc(KELAS) : 'Peserta tanpa kelas';
-  var h = '<div class="lbtitle"><h2>🏆 Top 5 · ' + judul + '</h2><button class="btn alt" id="lbbk">&larr; Kembali</button></div>';
-  if (d && d.top && d.top.length){
-    var t = d.top, me = String(player).trim().toLowerCase();
-    h += '<div class="podium">';
-    if (t[1]) h += podCol(t[1], 'p2', false);
-    h += podCol(t[0], 'p1', true);
-    if (t[2]) h += podCol(t[2], 'p3', false);
-    h += '</div>';
-    if (t.length > 3){
-      h += '<div class="rows">';
-      t.slice(3).forEach(function(r){
-        h += '<div class="rrow' + (r.nama.trim().toLowerCase() === me ? ' me' : '') + '"><span class="rk">' + r.rank + '</span>' + avatar(r.nama, 38) +
-             '<span class="nm" title="' + esc(r.nama) + '">' + esc(r.nama) + '</span><span class="pt">' + r.poin + '</span></div>';
-      });
-      h += '</div>';
-    }
-    if (d.saya) h += '<div class="saya">Posisimu: #' + d.saya.rank + ' dari ' + d.peserta + ' peserta · ' + d.saya.poin + ' poin</div>';
-    else h += '<div class="saya">Kamu belum punya poin di kelas ini. Selesaikan satu level dulu.</div>';
-  } else if (d) h += '<div class="kosong">Belum ada skor di kelas ini.</div>';
-  else h += '<div class="kosong">Belum ada data. Tekan <b>Tarik data</b> untuk melihat peringkat.</div>';
-  h += '<div class="lbact"><button class="btn" id="lbgo">Tarik data</button></div>';
-  h += '<p class="lbmeta" id="lbmsg">' + (msg || (c ? 'Terakhir diperbarui ' + new Date(c.at).toLocaleTimeString('id-ID') : '')) + '</p>';
-  app.innerHTML = h;
-  document.getElementById('lbbk').onclick = render;
-  document.getElementById('lbgo').onclick = tarikLB;
-}
-function tarikLB(){
-  var now = Date.now();
-  if (lbBusy) return;
-  if (now - lbLast < 8000) { document.getElementById('lbmsg').textContent = 'Tunggu sebentar sebelum menarik data lagi.'; return; }
-  lbBusy = true; lbLast = now;
-  var btn = document.getElementById('lbgo'); btn.disabled = true; btn.textContent = 'Menarik data...';
-  jsonp({action:'top', kelas:KELAS, nama:player}).then(function(d){
-    if (!d || !d.ok) throw new Error('server');
-    LS.set(lbKey(), {data:d, at:Date.now()});
-    lbBusy = false; renderLB();
-  }).catch(function(e){
-    lbBusy = false; renderLB(e.message === 'belum_dikonfigurasi' ? 'Google Sheet belum dikonfigurasi.' :
-      'Tidak ada respons dari server. Coba lagi, atau minta admin memastikan Code.gs terbaru sudah di-deploy.');
-  });
 }
 
 /* ---------- main game dalam iframe ---------- */

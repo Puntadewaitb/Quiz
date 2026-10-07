@@ -8,7 +8,7 @@
 
 Kelas: bagikan link `?kelas=A`, `?kelas=B`, dst. Rekap per kelas otomatis di Google Sheet (lihat `tools/apps-script/README.md`).
 
-Papan Peringkat (Top 5 per kelas) ada di aplikasi; halaman admin di `/admin/` memakai token dari `buatTokenAdmin` (lihat `tools/apps-script/README.md`).
+Peringkat hanya ada di halaman admin `/admin/` (token dari `buatTokenAdmin`, lihat `tools/apps-script/README.md`); halaman peserta tidak menampilkannya.
 
 ## Game Man TI (urutan menu mengikuti halaman slide)
 Komponen dan Cloud (hal. 5-19) > Sortir Lifecycle (20-21) > Urutan Pengadaan (32-33) > Kepatuhan dan Kematangan (63-70).

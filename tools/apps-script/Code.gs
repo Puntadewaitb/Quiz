@@ -106,14 +106,12 @@ function doPost(e) {
 }
 
 // ===================== Endpoint baca (GET) =====================
-// ?action=top&kelas=A&nama=Budi&callback=cb   -> Top 5 kelas (publik, tanpa token)
 // ?action=admin&token=XXXX&callback=cb        -> data lengkap (butuh ADMIN_TOKEN di Script Properties)
 // Tanpa action -> teks penanda endpoint aktif.
 function doGet(e) {
   var p = (e && e.parameter) || {};
   if (!p.action) return ContentService.createTextOutput('Game Prakom endpoint aktif');
   try {
-    if (p.action === 'top') return jsonOut_(topKelas_(kelas_(p.kelas), p.nama), p.callback);
     if (p.action === 'admin') return jsonOut_(dataAdmin_(p.token), p.callback);
     return jsonOut_({ok: false, error: 'aksi_tidak_dikenal'}, p.callback);
   } catch (err) {
@@ -133,24 +131,6 @@ function jsonOut_(obj, cb) {
 function bacaLog_() {
   var log = getLog_();
   return log.getLastRow() > 1 ? log.getRange(2, 1, log.getLastRow() - 1, 10).getValues() : [];
-}
-
-/** Top 5 satu kelas + posisi pemain (opsional). Di-cache 30 detik agar tidak membebani kuota saat banyak yang menekan tombol. */
-function topKelas_(kelas, nama) {
-  var cache = CacheService.getScriptCache(), key = 'top|' + kelas, d = null;
-  try { var c = cache.get(key); if (c) d = JSON.parse(c); } catch (err) {}
-  if (!d) {
-    var list = hitungSkor_(bacaLog_()).filter(function (s) { return s.kelas === kelas; });
-    d = {
-      top: list.slice(0, 5).map(function (s, i) { return ringkas_(s, i + 1); }),
-      all: list.map(function (s) { return [s.nama.toLowerCase(), s.total]; }),
-      peserta: list.length, diperbarui: new Date().toISOString()
-    };
-    try { cache.put(key, JSON.stringify(d), 30); } catch (err) {}   // gagal cache (terlalu besar) tidak masalah
-  }
-  var saya = null, q = String(nama || '').trim().toLowerCase();
-  if (q) for (var i = 0; i < d.all.length; i++) if (d.all[i][0] === q) { saya = {rank: i + 1, poin: d.all[i][1]}; break; }
-  return {ok: true, kelas: kelas, top: d.top, peserta: d.peserta, saya: saya, diperbarui: d.diperbarui};
 }
 
 function ringkas_(s, rank) {
