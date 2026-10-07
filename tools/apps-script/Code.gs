@@ -5,7 +5,7 @@ var HEADERS = ['Waktu', 'Nama', 'Game', 'Tema', 'Level', 'Bintang', 'Hasil', 'De
 var POIN_PER_BINTANG = 10;   // dikali bintang TERBAIK per game+level
 var BONUS_SEKALI_JALAN = 5;  // percobaan pertama langsung 3 bintang
 var PENALTI_ULANG = 1;       // per percobaan setelah yang pertama (per game+level)
-var GAME_LIST = ['Susun Kabel UTP', 'Sortir OSI', 'Detektif Jaringan', 'Mini Packet Tracer', 'Urutan Pengadaan', 'Sortir Lifecycle'];
+var GAME_LIST = ['Susun Kabel UTP', 'Sortir OSI', 'Detektif Jaringan', 'Mini Packet Tracer', 'Urutan Pengadaan', 'Sortir Lifecycle', 'Komponen dan Cloud', 'Kepatuhan dan Kematangan'];
 
 /** Hitung skor per orang per kelas dari baris Log [waktu,nama,game,tema,level,bintang,hasil,detail,id,kelas]. Fungsi murni. */
 function hitungSkor_(rows) {
@@ -43,16 +43,23 @@ function hitungSkor_(rows) {
   return out;
 }
 
+/** Daftar kolom game: GAME_LIST (urutan tetap) + game apa pun yang muncul di data tapi belum terdaftar (otomatis, tanpa edit kode). */
+function gameCols_(skor) {
+  var g = GAME_LIST.slice();
+  skor.forEach(function (s) { Object.keys(s.perGame).forEach(function (k) { if (g.indexOf(k) < 0) g.push(k); }); });
+  return g;
+}
+
 /** Tulis satu tab peringkat. denganKelas=true untuk tab gabungan (ada kolom Kelas). */
-function tulisRekap_(namaTab, skor, denganKelas) {
+function tulisRekap_(namaTab, skor, denganKelas, games) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName(namaTab) || ss.insertSheet(namaTab);
   sh.clear();
   var head = ['Peringkat'].concat(denganKelas ? ['Kelas'] : [], ['Nama', 'Total Poin', 'Level Selesai', 'Total Bintang (terbaik)', 'Percobaan', 'Poin Bintang', 'Bonus', 'Penalti'],
-    GAME_LIST.map(function (g) { return 'Bintang: ' + g; }), ['Terakhir Main']);
+    games.map(function (g) { return 'Bintang: ' + g; }), ['Terakhir Main']);
   var rows = skor.map(function (s, i) {
     return [i + 1].concat(denganKelas ? [s.kelas] : [], [s.nama, s.total, s.selesai, s.stars, s.tries, s.poinBintang, s.bonus, -s.penalti],
-      GAME_LIST.map(function (g) { return s.perGame[g]; }), [s.last ? new Date(s.last) : '']);
+      games.map(function (g) { return s.perGame[g] || 0; }), [s.last ? new Date(s.last) : '']);
   });
   sh.getRange(1, 1, 1, head.length).setValues([head]).setFontWeight('bold').setBackground('#FCDDC2');
   if (rows.length) {
@@ -68,11 +75,12 @@ function buatRekap_() {
   var log = getLog_();
   var data = log.getLastRow() > 1 ? log.getRange(2, 1, log.getLastRow() - 1, 10).getValues() : [];
   var semua = hitungSkor_(data);
-  tulisRekap_('Rekap', semua, true);
+  var games = gameCols_(semua);
+  tulisRekap_('Rekap', semua, true, games);
   var kelasAda = {};
   semua.forEach(function (s) { if (s.kelas !== '-') kelasAda[s.kelas] = 1; });
   Object.keys(kelasAda).sort().forEach(function (k) {
-    tulisRekap_('Rekap ' + k, semua.filter(function (s) { return s.kelas === k; }), false);   // urutan sudah per skor
+    tulisRekap_('Rekap ' + k, semua.filter(function (s) { return s.kelas === k; }), false, games);   // urutan sudah per skor
   });
 }
 
@@ -173,7 +181,7 @@ function dataAdmin_(token) {
   var terbaru = data.slice(-30).reverse().map(function (r) {
     return {waktu: r[0] instanceof Date ? r[0].toISOString() : '', nama: r[1], game: r[2], level: r[4], bintang: r[5], kelas: kelas_(r[9])};
   });
-  return {ok: true, diperbarui: new Date().toISOString(), games: GAME_LIST, kelas: Object.keys(kelasAda).sort(),
+  return {ok: true, diperbarui: new Date().toISOString(), games: gameCols_(skor), kelas: Object.keys(kelasAda).sort(),
     ringkasan: {peserta: skor.length, hasil: data.length, kelas: Object.keys(kelasAda).length}, peserta: peserta, terbaru: terbaru};
 }
 
