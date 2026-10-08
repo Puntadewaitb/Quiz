@@ -148,8 +148,11 @@ function samaToken_(a, b) {   // perbandingan waktu-konstan
 function dataAdmin_(token) {
   var t = PropertiesService.getScriptProperties().getProperty('ADMIN_TOKEN');
   if (!t) return {ok: false, error: 'admin_belum_diatur'};
-  if (t.length < 12) return {ok: false, error: 'token_terlalu_pendek'};
-  if (!samaToken_(token, t)) return {ok: false, error: 'token_salah'};
+  if (t.length < 6) return {ok: false, error: 'token_terlalu_pendek'};
+  // pembatas tebakan: 20 token salah dalam 10 menit -> admin dikunci sampai jendela waktu habis
+  var cache = CacheService.getScriptCache(), gagal = Number(cache.get('adm_gagal') || 0);
+  if (gagal >= 20) return {ok: false, error: 'terkunci'};
+  if (!samaToken_(token, t)) { cache.put('adm_gagal', String(gagal + 1), 600); return {ok: false, error: 'token_salah'}; }
   var data = bacaLog_();
   var skor = hitungSkor_(data), kelasAda = {};
   var peserta = skor.map(function (s, i) {

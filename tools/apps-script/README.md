@@ -29,5 +29,7 @@ Kelas ditentukan oleh link, tanpa edit kode: `.../Quiz/?kelas=A`, `?kelas=B`, `?
 ## Halaman /admin
 - Peringkat hanya bisa dilihat di halaman admin: `https://puntadewaitb.github.io/Quiz/admin/` (tidak diindeks mesin pencari). Halaman peserta tidak menampilkan papan peringkat.
 - Isi admin: peringkat semua kelas atau per kelas, rincian bintang per game, aktivitas terbaru, unduh CSV.
-- **Token admin** (dicek di server, bukan di halaman): di Apps Script jalankan fungsi `buatTokenAdmin` sekali, lalu ambil token dari **Execution log**. Ganti token = jalankan fungsi itu lagi. Tanpa token, endpoint admin menolak semua permintaan.
+- **Token admin** disimpan di server (Script Properties), tidak pernah ditulis di kode atau repo (repo ini publik). Cara menetapkan token sendiri: Apps Script > ikon roda gigi **Project Settings** > **Script Properties** > **Add script property** > nama `ADMIN_TOKEN`, nilai token pilihanmu > Save. Minimal 6 karakter. Ganti token = ubah nilai properti itu.
+- Alternatif token acak: jalankan fungsi `buatTokenAdmin` (token tampil di Execution log). **Hati-hati: fungsi ini menimpa ADMIN_TOKEN yang sudah kamu atur.**
+- Pembatas: 20 token salah dalam 10 menit mengunci endpoint admin sampai jendela waktu habis.
 - Setelah menempel `Code.gs` baru: Save, jalankan `setup`, lalu Deploy > Manage deployments > pensil > New version > Deploy.

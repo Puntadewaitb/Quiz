@@ -78,7 +78,8 @@ function jsonp(params, ms){
 }
 var PESAN = {
   admin_belum_diatur:'Token admin belum dibuat. Di Apps Script jalankan fungsi buatTokenAdmin, lalu ambil token dari Execution log.',
-  token_terlalu_pendek:'Token di server terlalu pendek (minimal 12 karakter). Jalankan buatTokenAdmin untuk membuat yang baru.',
+  token_terlalu_pendek:'Token di server terlalu pendek (minimal 6 karakter). Perbarui ADMIN_TOKEN di Script Properties.',
+  terkunci:'Terlalu banyak token salah. Tunggu sekitar 10 menit lalu coba lagi.',
   token_salah:'Token salah.', server_error:'Server error. Cek Executions di Apps Script.', aksi_tidak_dikenal:'Code.gs di server belum versi terbaru. Deploy New version.',
   timeout:'Tidak ada respons. Pastikan Code.gs terbaru sudah di-deploy (Deploy > Manage deployments > New version).', gagal:'Gagal terhubung ke server.',
   belum_dikonfigurasi:'SHEET_URL belum diisi di halaman ini.'
