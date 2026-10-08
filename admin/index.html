@@ -47,6 +47,9 @@ td.nm .w{display:flex;align-items:center;gap:8px}
 .top3 td:first-child{font-weight:800}
 .hidden{display:none!important}
 h2{font-size:17px;margin-bottom:8px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tab{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:8px 16px;font-weight:700}
+.tab[aria-selected=true]{background:var(--accent);border-color:var(--accent);color:#fff}
 .pill{background:var(--peach);border-radius:999px;padding:2px 10px;font-weight:700;font-size:12px}
 </style>
 </head>
@@ -54,7 +57,7 @@ h2{font-size:17px;margin-bottom:8px}
 <div class="wrap" id="app"></div>
 <script>
 var SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7GzWQU0UNbt2i6LUE6O8OlJQtdGO-dCge2GpV6XD8WBZWWtuXEPL_R9MVFnvA3NDXUg/exec';
-var app = document.getElementById('app'), DATA = null, TOKEN = '', FILTER = '*';
+var app = document.getElementById('app'), DATA = null, TOKEN = '', FILTER = '*', MT = '*';   /* MT: '*' = semua materi, atau nama tema (Sisjarkom / Man TI) */
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 var AVATARS = ['🦊','🐼','🐯','🦁','🐸','🐙','🦄','🐲','🦉','🐧','🐨','🐵','🐰','🐻','🦖','🐳'];
 var AVBG = ['#FCDDC2','#CDEFE0','#D9E0FF','#FFD6E2','#FFF0B8','#E4D9FF','#CFEFFA','#FAD0D0'];
@@ -103,34 +106,51 @@ function tarik(){
     DATA = d; render();
   }).catch(function(e){ if (DATA) render(PESAN[e.message] || 'Gagal.'); else login(PESAN[e.message] || 'Gagal.'); });
 }
+function gamesShown(){
+  return DATA.games.filter(function(g){ return MT === '*' || (DATA.gameTema && DATA.gameTema[g] === MT); });
+}
 function rows(){
-  var p = DATA.peserta.filter(function(x){ return FILTER === '*' || x.kelas === FILTER; });
-  return p.map(function(x, i){ var o = Object.assign({}, x); o.rank = i + 1; return o; });   // urutan dari server sudah menurut skor
+  var out = [];
+  DATA.peserta.forEach(function(x){
+    if (FILTER !== '*' && x.kelas !== FILTER) return;
+    if (MT === '*') { var o = Object.assign({}, x); o._last = Date.parse(x.terakhir) || 0; out.push(o); return; }
+    var T = x.perTema && x.perTema[MT]; if (!T) return;   /* belum pernah main materi ini: tidak masuk daftar */
+    out.push({nama:x.nama, kelas:x.kelas, poin:T.total, bintang:T.stars, selesai:T.selesai, percobaan:T.tries, bonus:T.bonus, penalti:T.penalti, perGame:x.perGame, _last:T.last || 0});
+  });
+  out.sort(function(a,b){ return b.poin - a.poin || a.percobaan - b.percobaan || a._last - b._last; });   /* aturan peringkat sama dengan server */
+  return out.map(function(x, i){ x.rank = i + 1; return x; });
+}
+function tabsHTML(){
+  var t = ['*'].concat(DATA.temas || []);
+  return '<div class="tabs" role="tablist" aria-label="Materi">' + t.map(function(m){
+    return '<button class="tab" role="tab" data-mt="' + esc(m) + '" aria-selected="' + (m === MT) + '">' + (m === '*' ? 'Semua materi' : esc(m)) + '</button>';
+  }).join('') + '</div>';
 }
 function render(msg){
   var r = rows(), k = DATA.kelas, h = '';
   var tot = r.reduce(function(a,x){ a.s += x.selesai; a.p += x.percobaan; return a; }, {s:0,p:0});
   h += '<div class="hero"><h1>Admin Game Prakom</h1><p>Diperbarui ' + new Date(DATA.diperbarui).toLocaleTimeString('id-ID') + '</p></div>';
+  h += tabsHTML();
   h += '<div class="bar"><div><label for="kf">Kelas</label><select id="kf"><option value="*">Semua kelas</option>' +
        k.map(function(x){ return '<option value="' + esc(x) + '"' + (x === FILTER ? ' selected' : '') + '>' + (x === '-' ? '(tanpa kelas)' : esc(x)) + '</option>'; }).join('') + '</select></div>' +
        '<button class="btn" id="tarik">Tarik data</button><button class="btn alt" id="csv">Unduh CSV</button><button class="btn alt" id="out">Keluar</button></div>';
   h += '<p class="err" id="er">' + esc(msg || '') + '</p>';
   h += '<div class="stats"><div class="stat"><b>' + r.length + '</b><span>Peserta</span></div><div class="stat"><b>' + tot.s + '</b><span>Level selesai</span></div>' +
        '<div class="stat"><b>' + tot.p + '</b><span>Percobaan</span></div><div class="stat"><b>' + (FILTER === '*' ? DATA.ringkasan.kelas : 1) + '</b><span>Kelas</span></div></div>';
-  h += '<div class="card"><h2>Peringkat' + (FILTER === '*' ? ' (semua kelas)' : ' · Kelas ' + esc(FILTER === '-' ? '(tanpa kelas)' : FILTER)) + '</h2>';
+  h += '<div class="card"><h2>Peringkat · ' + (MT === '*' ? 'Semua materi' : esc(MT)) + (FILTER === '*' ? ' · semua kelas' : ' · Kelas ' + esc(FILTER === '-' ? '(tanpa kelas)' : FILTER)) + '</h2>';
   if (!r.length) h += '<p class="meta">Belum ada data.</p>';
   else {
     h += '<div class="tw"><table><thead><tr><th>#</th><th>Nama</th><th>Kelas</th><th class="n">Poin</th><th class="n">Bintang</th><th class="n">Level</th><th class="n">Coba</th><th class="n">Bonus</th><th class="n">Penalti</th>' +
-         DATA.games.map(function(g){ return '<th class="n" title="' + esc(g) + '">' + esc(g.length > 12 ? g.slice(0,11) + '…' : g) + '</th>'; }).join('') + '</tr></thead><tbody>';
+         gamesShown().map(function(g){ return '<th class="n" title="' + esc(g) + '">' + esc(g.length > 12 ? g.slice(0,11) + '…' : g) + '</th>'; }).join('') + '</tr></thead><tbody>';
     r.forEach(function(x){
       h += '<tr' + (x.rank <= 3 ? ' class="top3"' : '') + '><td>' + (x.rank === 1 ? '🥇' : x.rank === 2 ? '🥈' : x.rank === 3 ? '🥉' : x.rank) + '</td><td class="nm"><div class="w">' + avatar(x.nama, 28) + esc(x.nama) + '</div></td><td><span class="pill">' + esc(x.kelas) + '</span></td>' +
-           '<td class="n"><b>' + x.poin + '</b></td><td class="n">' + x.bintang + '</td><td class="n">' + x.selesai + '</td><td class="n">' + x.percobaan + '</td><td class="n">' + x.bonus + '</td><td class="n">-' + x.penalti + '</td>' +
-           DATA.games.map(function(g){ return '<td class="n">' + (x.perGame[g] || 0) + '</td>'; }).join('') + '</tr>';
+           '<td class="n"><b>' + x.poin + '</b></td><td class="n">' + x.bintang + '</td><td class="n">' + x.selesai + '</td><td class="n">' + x.percobaan + '</td><td class="n">' + x.bonus + '</td><td class="n">' + (x.penalti ? '-' + x.penalti : '0') + '</td>' +
+           gamesShown().map(function(g){ return '<td class="n">' + (x.perGame[g] || 0) + '</td>'; }).join('') + '</tr>';
     });
     h += '</tbody></table></div>';
   }
   h += '</div>';
-  var tb = DATA.terbaru.filter(function(x){ return FILTER === '*' || x.kelas === FILTER; });
+  var tb = DATA.terbaru.filter(function(x){ return (FILTER === '*' || x.kelas === FILTER) && (MT === '*' || x.tema === MT); });
   h += '<div class="card"><h2>Aktivitas terbaru</h2>';
   if (!tb.length) h += '<p class="meta">Belum ada aktivitas.</p>';
   else {
@@ -138,21 +158,22 @@ function render(msg){
     tb.forEach(function(x){ h += '<tr><td>' + (x.waktu ? new Date(x.waktu).toLocaleString('id-ID') : '') + '</td><td>' + esc(x.nama) + '</td><td>' + esc(x.kelas) + '</td><td>' + esc(x.game) + '</td><td class="n">' + esc(x.level) + '</td><td class="n">' + esc(x.bintang) + '</td></tr>'; });
     h += '</tbody></table></div>';
   }
-  h += '</div><p class="meta">Poin = 10 per bintang terbaik per game dan level, +5 bonus jika percobaan pertama langsung 3 bintang, -1 per percobaan ulang. Data asli ada di tab Log pada Google Sheet.</p>';
+  h += '</div><p class="meta">Poin = 10 per bintang terbaik per game dan level, +5 bonus jika percobaan pertama langsung 3 bintang, -1 per percobaan ulang. Tab Sisjarkom / Man TI menghitung ulang poin dan peringkat hanya dari game pada materi itu. Data asli ada di tab Log pada Google Sheet.</p>';
   app.innerHTML = h;
   document.getElementById('kf').onchange = function(){ FILTER = this.value; render(); };
+  Array.prototype.forEach.call(app.querySelectorAll('.tab'), function(b){ b.onclick = function(){ MT = b.dataset.mt; render(); }; });
   document.getElementById('tarik').onclick = tarik;
   document.getElementById('csv').onclick = csv;
   document.getElementById('out').onclick = function(){ try{ sessionStorage.removeItem('pk_admin'); }catch(e){} DATA = null; TOKEN = ''; login(); };
 }
 function csv(){
-  var cols = ['rank','kelas','nama','poin','bintang','selesai','percobaan','bonus','penalti'].concat(DATA.games);
+  var gs = gamesShown(), cols = ['rank','materi','kelas','nama','poin','bintang','selesai','percobaan','bonus','penalti'].concat(gs);
   var out = [cols.join(',')].concat(rows().map(function(x){
-    return cols.map(function(c){ var v = DATA.games.indexOf(c) >= 0 ? (x.perGame[c] || 0) : x[c]; v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v) && isNaN(Number(v))) v = "'" + v; return '"' + v.replace(/"/g,'""') + '"'; }).join(',');
+    return cols.map(function(c){ var v = gs.indexOf(c) >= 0 ? (x.perGame[c] || 0) : (c === 'materi' ? (MT === '*' ? 'Semua' : MT) : x[c]); v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v) && isNaN(Number(v))) v = "'" + v; return '"' + v.replace(/"/g,'""') + '"'; }).join(',');
   }));
   var a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob(['﻿' + out.join('\n')], {type:'text/csv'}));
-  a.download = 'peringkat-' + (FILTER === '*' ? 'semua' : FILTER) + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+  a.download = 'peringkat-' + (MT === '*' ? 'semua-materi' : MT.replace(/\s+/g,'-')) + '-' + (FILTER === '*' ? 'semua-kelas' : FILTER) + '.csv'; document.body.appendChild(a); a.click(); a.remove();
 }
 try{ TOKEN = sessionStorage.getItem('pk_admin') || ''; }catch(e){}
 if (TOKEN) tarik(); else login();

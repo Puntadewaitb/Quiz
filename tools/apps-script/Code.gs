@@ -15,18 +15,20 @@ function hitungSkor_(rows) {
     if (!nama) return;
     var kelas = kelas_(r[9]);
     var key = kelas + '|' + nama.toLowerCase();
-    var p = by[key] || (by[key] = {nama: nama, kelas: kelas, lv: {}, tries: 0, last: 0});
+    var p = by[key] || (by[key] = {nama: nama, kelas: kelas, lv: {}, tries: 0, last: 0, lastT: {}});
     var lk = r[2] + '|' + r[4];
-    var l = p.lv[lk] || (p.lv[lk] = {game: r[2], n: 0, best: 0, first: null});
+    var tema = String(r[3] || '-').trim() || '-';
+    var l = p.lv[lk] || (p.lv[lk] = {game: r[2], tema: tema, n: 0, best: 0, first: null});
     l.n++; p.tries++;
     var b = Number(r[5]) || 0;
     if (l.first === null) l.first = b;
     if (b > l.best) l.best = b;
     var t = r[0] instanceof Date ? r[0].getTime() : 0;
     if (t > p.last) p.last = t;
+    if (t > (p.lastT[tema] || 0)) p.lastT[tema] = t;
   });
   var out = Object.keys(by).map(function (k) {
-    var p = by[k], stars = 0, bonus = 0, ulang = 0, selesai = 0, perGame = {};
+    var p = by[k], stars = 0, bonus = 0, ulang = 0, selesai = 0, perGame = {}, perTema = {};
     GAME_LIST.forEach(function (g) { perGame[g] = 0; });
     Object.keys(p.lv).forEach(function (lk) {
       var l = p.lv[lk];
@@ -34,10 +36,20 @@ function hitungSkor_(rows) {
       if (l.best > 0) selesai++;
       if (l.first === 3) bonus += BONUS_SEKALI_JALAN;
       perGame[l.game] = (perGame[l.game] || 0) + l.best;
+      // rincian per materi (tema) dengan aturan poin yang sama; dipakai tab Sisjarkom / Man TI di admin
+      var T = perTema[l.tema] || (perTema[l.tema] = {stars: 0, selesai: 0, tries: 0, bonus: 0, ulang: 0, last: p.lastT[l.tema] || 0});
+      T.stars += l.best; T.tries += l.n; T.ulang += l.n - 1;
+      if (l.best > 0) T.selesai++;
+      if (l.first === 3) T.bonus += BONUS_SEKALI_JALAN;
+    });
+    Object.keys(perTema).forEach(function (tm) {
+      var T = perTema[tm];
+      T.poinBintang = T.stars * POIN_PER_BINTANG; T.penalti = T.ulang * PENALTI_ULANG;
+      T.total = Math.max(0, T.poinBintang + T.bonus - T.penalti); delete T.ulang;
     });
     var poinBintang = stars * POIN_PER_BINTANG, penalti = ulang * PENALTI_ULANG;
     return {nama: p.nama, kelas: p.kelas, selesai: selesai, stars: stars, tries: p.tries, poinBintang: poinBintang,
-      bonus: bonus, penalti: penalti, total: Math.max(0, poinBintang + bonus - penalti), last: p.last, perGame: perGame};
+      bonus: bonus, penalti: penalti, total: Math.max(0, poinBintang + bonus - penalti), last: p.last, perGame: perGame, perTema: perTema};
   });
   out.sort(function (a, b) { return b.total - a.total || a.tries - b.tries || a.last - b.last; });
   return out;
@@ -158,13 +170,17 @@ function dataAdmin_(token) {
   var peserta = skor.map(function (s, i) {
     kelasAda[s.kelas] = 1;
     var o = ringkas_(s, i + 1);
-    o.bonus = s.bonus; o.penalti = s.penalti; o.perGame = s.perGame; o.terakhir = s.last ? new Date(s.last).toISOString() : '';
+    o.bonus = s.bonus; o.penalti = s.penalti; o.perGame = s.perGame; o.perTema = s.perTema; o.terakhir = s.last ? new Date(s.last).toISOString() : '';
     return o;
   });
   var terbaru = data.slice(-30).reverse().map(function (r) {
-    return {waktu: r[0] instanceof Date ? r[0].toISOString() : '', nama: r[1], game: r[2], level: r[4], bintang: r[5], kelas: kelas_(r[9])};
+    return {waktu: r[0] instanceof Date ? r[0].toISOString() : '', nama: r[1], game: r[2], tema: String(r[3] || '-'), level: r[4], bintang: r[5], kelas: kelas_(r[9])};
   });
-  return {ok: true, diperbarui: new Date().toISOString(), games: gameCols_(skor), kelas: Object.keys(kelasAda).sort(),
+  var gameTema = {}, temaAda = {};
+  data.forEach(function (r) { var tm = String(r[3] || '-'); temaAda[tm] = 1; if (!gameTema[r[2]]) gameTema[r[2]] = tm; });
+  var temas = ['Sisjarkom', 'Man TI'].filter(function (x) { return temaAda[x]; })
+    .concat(Object.keys(temaAda).filter(function (x) { return x !== 'Sisjarkom' && x !== 'Man TI'; }).sort());
+  return {ok: true, diperbarui: new Date().toISOString(), games: gameCols_(skor), gameTema: gameTema, temas: temas, kelas: Object.keys(kelasAda).sort(),
     ringkasan: {peserta: skor.length, hasil: data.length, kelas: Object.keys(kelasAda).length}, peserta: peserta, terbaru: terbaru};
 }
 
